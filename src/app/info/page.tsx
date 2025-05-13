@@ -14,7 +14,8 @@ export default function Info() {
               <div className="text-gray-300 space-y-4">
                 <p> Imagina que demà en Mr meta decideix tancar Instagram. O pitjor encara, tancar atractive_smithers...</p>
                 <p> Aquí pots buscar tot el material d&apos;atractive_smithers sense que ningú et vigili.</p>
-                <p> De moment falten ~50 posts i molts comentaris, els reels encara no es poden reproduïr.</p>
+                <p> A dia d&apos;avui falten ~50 posts i molts comentaris, els reels encara no es poden reproduïr.</p>
+                <p> DISCLAIMER: Projecte fet per un fan! pot deixar de funcionar en qualsevol moment (em moro).</p>
               </div>
             </div>
           </div>
