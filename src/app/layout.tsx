@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { JetBrains_Mono } from 'next/font/google'
 import Link from 'next/link'
 import './globals.css'
@@ -8,9 +8,57 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata: Metadata = {
-  title: 'Meme Viewer',
-  description: 'View and interact with memes',
+  title: {
+    default: 'Atractive Smithers',
+    template: '%s | Atractive Smithers'
+  },
+  description: 'View and interact with memes from Atractive Smithers',
+  keywords: ['memes', 'instagram', 'social media', 'funny'],
+  authors: [{ name: 'Atractive Smithers' }],
+  creator: 'Atractive Smithers',
+  publisher: 'Atractive Smithers',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://atractive-smithers.vercel.app'),
+  openGraph: {
+    type: 'website',
+    locale: 'ca_ES',
+    url: 'https://atractive-smithers.vercel.app',
+    title: 'Atractive Smithers',
+    description: 'View and interact with memes from Atractive Smithers',
+    siteName: 'Atractive Smithers',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Atractive Smithers',
+    description: 'View and interact with memes from Atractive Smithers',
+    creator: '@atractive_smithers',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 export default function RootLayout({
