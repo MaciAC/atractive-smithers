@@ -24,13 +24,13 @@ export default function Home() {
               </div>
             </Link>
 
-            <Link href="/numbrus" className="group">
+            {/* <Link href="/numbrus" className="group">
               <div className="bg-gray-800 rounded-xl p-6 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
                 <h2 className="text-2xl font-bold text-white group-hover:text-purple-400 transition-colors">
                 Atractive Stats
                 </h2>
               </div>
-            </Link>
+            </Link> */}
             <Link href="/info" className="group">
               <div className="bg-gray-800 rounded-xl p-6 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
                 <h2 className="text-2xl font-bold text-white group-hover:text-purple-400 transition-colors">
