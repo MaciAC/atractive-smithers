@@ -160,7 +160,7 @@ export default function Searcher() {
     <main className="min-h-screen py-8">
       <div className="container">
         <div className="max-w-2xl mx-auto mb-8 space-y-4">
-          <div className="flex gap-4">
+          <div className="flex flex-col md:flex-row gap-4">
             <input
               type="text"
               placeholder="Busca..."
