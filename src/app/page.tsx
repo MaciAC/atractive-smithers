@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import allData from "../../public/all_data.json";
 import { Meme } from "@/types/meme";
 import { useState, useEffect } from "react";
