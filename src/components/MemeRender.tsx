@@ -56,7 +56,7 @@ function CommentSection({ memeData, isModal = false }: { memeData: Meme; isModal
       >
         <div className="p-3 sm:p-4 pb-4">
           {memeData.caption && (
-            <div className="mb-4 p-3 sm:p-4 bg-gray-700/40 sm:bg-gray-800/50 backdrop-blur-md rounded-lg">
+            <div className="mb-4 p-3 sm:p-4 rounded-lg">
               <p className="text-gray-200 sm:text-gray-300 text-xs sm:text-sm font-mono">{memeData.caption}</p>
             </div>
           )}
@@ -116,7 +116,7 @@ function CommentSection({ memeData, isModal = false }: { memeData: Meme; isModal
   );
 }
 
-export default function MemeRender({ memeId, memeData, onClose, variant = 'modal' }: MemeRenderProps) {
+export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
     const [memeFiles, setMemeFiles] = useState<MemeFile[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -154,149 +154,69 @@ export default function MemeRender({ memeId, memeData, onClose, variant = 'modal
 
     const formattedDate = isValid(parsedDate)
     ? format(parsedDate, 'MMM d, yyyy')
-    : memeData.date.split('_')[0]; // Fallback to just the date part if parsing fails
-
-    // Inline variant with responsive layout
-    if (variant === 'inline') {
-        return (
-            <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700 backdrop-blur-md bg-gray-800/70">
-                <div className="flex items-center justify-between p-3 border-b border-gray-800/70">
-                    <div className="flex items-center space-x-2 overflow-x-auto scrollbar-none">
-                        <span className="text-gray-300 font-mono text-sm whitespace-nowrap">#{memeId}</span>
-                        <div className="flex items-center space-x-3 text-gray-400">
-                            <div className="flex items-center space-x-1 whitespace-nowrap">
-                                <HeartIcon className="w-3.5 h-3.5" />
-                                <span className="text-sm">{memeData.likes}</span>
-                            </div>
-                            <div className="flex items-center space-x-1 whitespace-nowrap">
-                                <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
-                                <span className="text-sm">{memeData.total_comments}</span>
-                            </div>
-                            <div className="flex items-center space-x-1 whitespace-nowrap">
-                                <CalendarIcon className="w-3.5 h-3.5" />
-                                <span className="text-sm">{formattedDate}</span>
-                            </div>
-                        </div>
-                    </div>
+    : memeData.date.split('_')[0];
+    return (
+        <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700" style={{ backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.15)` }}>            <div className="flex items-center justify-between p-3 border-b border-gray-800/70">
+          <div className="flex items-center space-x-2 overflow-x-auto scrollbar-none">
+            <span className="text-gray-300 font-mono text-sm whitespace-nowrap">#{memeId}</span>
+            <div className="flex items-center space-x-3 text-gray-400">
+                <div className="flex items-center space-x-1 whitespace-nowrap">
+                    <HeartIcon className="w-3.5 h-3.5" />
+                    <span className="text-sm">{memeData.likes}</span>
                 </div>
+                <div className="flex items-center space-x-1 whitespace-nowrap">
+                    <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
+                    <span className="text-sm">{memeData.total_comments}</span>
+                </div>
+                <div className="flex items-center space-x-1 whitespace-nowrap">
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    <span className="text-sm">{formattedDate}</span>
+                </div>
+            </div>
+          </div>
+        </div>
 
-                <div className="flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(80vh - 50px)' }}>
-                    {/* Image Section - responsive */}
-                    <div className="w-full md:w-2/3 h-full bg-gray-800/60 backdrop-blur-sm relative flex items-center justify-center">
-                        {isLoading ? (
-                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-400"></div>
-                        ) : (
-                            <div className="relative w-full h-full flex items-center justify-center">
-                                <Image
-                                    src={memeFiles[currentImageIndex]?.url || ''}
-                                    alt={`Meme ${memeId}`}
-                                    width={800}
-                                    height={800}
-                                    className="object-contain max-w-full max-h-full"
-                                />
-                                {memeFiles.length > 1 && (
-                                    <>
-                                        <button
-                                            onClick={prevImage}
-                                            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
-                                        >
-                                            ←
-                                        </button>
-                                        <button
-                                            onClick={nextImage}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
-                                        >
-                                            →
-                                        </button>
-                                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full text-white text-xs font-mono">
-                                            {currentImageIndex + 1} / {memeFiles.length}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
+        <div className="flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(80vh - 50px)' }}>
+            {/* Image Section - responsive */}
+            <div className="w-full md:w-2/3 h-full relative flex items-center justify-center">
+                {isLoading ? (
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-400"></div>
+                ) : (
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        <Image
+                            src={memeFiles[currentImageIndex]?.url || ''}
+                            alt={`Meme ${memeId}`}
+                            width={800}
+                            height={800}
+                            className="object-contain max-w-full max-h-full"
+                        />
+                        {memeFiles.length > 1 && (
+                            <>
+                                <button
+                                    onClick={prevImage}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
+                                >
+                                    ←
+                                </button>
+                                <button
+                                    onClick={nextImage}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
+                                >
+                                    →
+                                </button>
+                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full text-white text-xs font-mono">
+                                    {currentImageIndex + 1} / {memeFiles.length}
+                                </div>
+                            </>
                         )}
                     </div>
-
-                    {/* Comments Section - responsive */}
-                    <div className="w-full md:w-1/3 border-t md:border-t-0 md:border-l border-gray-700/50 bg-gray-800/50 backdrop-blur-md h-full overflow-hidden">
-                        <CommentSection memeData={memeData} />
-                    </div>
-                </div>
+                )}
             </div>
-        );
-    }
-
-    // Original modal view with improved scrolling
-    return (
-        <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
-                <div className="flex items-center space-x-4">
-                    <span className="text-gray-400 font-mono">#{memeId}</span>
-                    <div className="flex items-center space-x-4 text-gray-500">
-                        <div className="flex items-center space-x-1">
-                            <HeartIcon className="w-4 h-4" />
-                            <span>{memeData.likes}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <ChatBubbleLeftIcon className="w-4 h-4" />
-                            <span>{memeData.total_comments}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <CalendarIcon className="w-4 h-4" />
-                            <span>{formattedDate}</span>
-                        </div>
-                    </div>
-                </div>
-                <button
-                    onClick={onClose}
-                    className="text-gray-500 hover:text-gray-300 transition-colors"
-                >
-                    <XMarkIcon className="w-6 h-6" />
-                </button>
-            </div>
-
-            <div className="flex flex-1 min-h-0" style={{ height: 'calc(90vh - 60px)' }}>
-                {/* Image Section */}
-                <div className="w-2/3 flex items-center justify-center bg-gray-800 relative h-full">
-                    {isLoading ? (
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-600"></div>
-                    ) : (
-                        <div className="relative w-full h-full flex items-center justify-center">
-                            <Image
-                                src={memeFiles[currentImageIndex]?.url || ''}
-                                alt={`Meme ${memeId}`}
-                                width={800}
-                                height={800}
-                                className="max-w-full max-h-full object-contain"
-                            />
-                            {memeFiles.length > 1 && (
-                                <>
-                                    <button
-                                        onClick={prevImage}
-                                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
-                                    >
-                                        ←
-                                    </button>
-                                    <button
-                                        onClick={nextImage}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors"
-                                    >
-                                        →
-                                    </button>
-                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-full text-white text-sm font-mono">
-                                        {currentImageIndex + 1} / {memeFiles.length}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Comments Section with improved scrolling */}
-                <div className="w-1/3 border-l border-gray-800 h-full">
-                    <CommentSection memeData={memeData} isModal={true} />
-                </div>
+            {/* Comments Section - responsive */}
+            <div className="w-full md:w-1/3 border-t md:border-t-0 md:border-l border-gray-700/50 h-full overflow-hidden">
+                <CommentSection memeData={memeData} />
             </div>
         </div>
-    );
+      </div>
+  );
 }

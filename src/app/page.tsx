@@ -66,7 +66,7 @@ export default function Home() {
             </button>
 
             <div
-              className="transition-opacity duration-500 ease-in-out w-full flex justify-center"
+              className="transition-opacity duration-500 ease-in-out w-full flex justify-center backdrop-blur-2xl"
               style={{ opacity: isVisible ? 1 : 0 }}
             >
               {randomMeme && randomMemeId && (
