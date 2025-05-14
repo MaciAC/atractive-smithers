@@ -53,7 +53,7 @@ export default function MemeCard({ memeId, memeData, onSelect, shouldLoadImage }
           <div className="relative w-full h-full">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <Image
-                src={memeFiles[0]?.url || ''}
+                src={memeFiles[0]?.url || null}
                 alt={`Meme ${memeId}`}
                 width={300}
                 height={300}
