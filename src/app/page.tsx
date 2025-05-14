@@ -10,44 +10,68 @@ const typedData = allData as Record<string, Meme>;
 export default function Home() {
   const [randomMeme, setRandomMeme] = useState<Meme | null>(null);
   const [randomMemeId, setRandomMemeId] = useState<string | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const getRandomMeme = () => {
-    setIsTransitioning(true);
+    if (isLoading) return;
+    setIsLoading(true);
 
-    // Delay setting the new meme to allow for fade-out animation
+    // First, hide the current meme
+    setIsVisible(false);
+
+    // Wait for fade-out animation to complete
     setTimeout(() => {
+      // Select a new meme
       const memeIds = Object.keys(typedData);
-      const randomId = memeIds[Math.floor(Math.random() * memeIds.length)];
+      let randomId;
+
+      // Avoid selecting the same meme
+      do {
+        randomId = memeIds[Math.floor(Math.random() * memeIds.length)];
+      } while (randomId === randomMemeId && memeIds.length > 1);
+
+      // Update the meme state while it's hidden
       setRandomMeme(typedData[randomId]);
       setRandomMemeId(randomId);
 
-      // Allow some time for the new meme to fade in
+      // Small additional delay to ensure the DOM has updated
       setTimeout(() => {
-        setIsTransitioning(false);
-      }, 600);
-    }, 600);
+        // Show the new meme
+        setIsVisible(true);
+        setIsLoading(false);
+      }, 100);
+    }, 500);
   };
 
   useEffect(() => {
-    getRandomMeme();
+    // Initial meme load
+    const memeIds = Object.keys(typedData);
+    const randomId = memeIds[Math.floor(Math.random() * memeIds.length)];
+    setRandomMeme(typedData[randomId]);
+    setRandomMemeId(randomId);
   }, []);
 
   return (
-    <main className="pb-4">
-      <div className="container">
-        <div>
-          <div className="flex flex-col gap-4 justify-center items-center">
+    <main className="pb-4 flex flex-col items-center justify-center">
+      <div className="mx-auto px-4">
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col gap-4 items-center w-full max-w-3xl mx-auto">
             <button
               onClick={getRandomMeme}
               className="bg-white p-1 text-emerald-300 text-2xl font-bold rounded hover:bg-emerald-300 hover:text-emerald-900"
-              disabled={isTransitioning}
+              disabled={isLoading}
             >
-              DALEEEEE
+              {isLoading ? "Espera..." : "DALEEEEE"}
             </button>
-            <div className={`transition-opacity duration-300 ease-in-out ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+
+            <div
+              className="transition-opacity duration-500 ease-in-out w-full flex justify-center"
+              style={{ opacity: isVisible ? 1 : 0 }}
+            >
               {randomMeme && randomMemeId && (
                 <MemeRender
+                  key={randomMemeId} // Force complete re-render on ID change
                   memeId={randomMemeId}
                   memeData={randomMeme}
                   onClose={() => {}}
