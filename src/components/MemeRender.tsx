@@ -126,7 +126,14 @@ export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
           const response = await fetch(`/api/memes/${memeId}`);
           if (!response.ok) throw new Error('Failed to fetch meme files');
           const data = await response.json();
-          setMemeFiles(data.files);
+
+          // Filter files if exactly 2 files with one MP4
+          if (data.files.length === 2 && data.files.some((file: MemeFile) => file.key.endsWith('.mp4'))) {
+            const mp4File = data.files.find((file: MemeFile) => file.key.endsWith('.mp4'));
+            setMemeFiles([mp4File]);
+          } else {
+            setMemeFiles(data.files);
+          }
         } catch (error) {
           console.error('Error fetching meme files:', error);
         } finally {

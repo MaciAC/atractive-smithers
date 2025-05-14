@@ -53,15 +53,24 @@ export default function MemeCard({ memeId, memeData, onSelect, shouldLoadImage }
           <div className="relative w-full h-full">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <Image
-                src={memeFiles[0]?.url || null}
+                src={memeFiles[0]?.url || ''}
                 alt={`Meme ${memeId}`}
                 width={300}
                 height={300}
                 className="max-w-[280px] max-h-[280px] object-contain"
                 priority={false}
               />
+              {memeFiles.some(file => file.key.endsWith('.mp4')) && (
+                <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-white text-xs font-mono flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Video
+                </div>
+              )}
             </div>
-            {memeFiles.length > 1 && (
+            {memeFiles.length > 1 && !memeFiles.some(file => file.key.endsWith('.mp4')) && (
               <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full text-white text-xs font-mono">
                 +{memeFiles.length - 1}
               </div>
