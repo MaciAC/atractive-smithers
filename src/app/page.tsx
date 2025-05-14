@@ -1,43 +1,60 @@
 "use client";
 
-import Link from "next/link";
+import allData from "../../public/all_data.json";
+import { Meme } from "@/types/meme";
+import { useState, useEffect } from "react";
+import MemeRender from "@/components/MemeRender";
+
+const typedData = allData as Record<string, Meme>;
 
 export default function Home() {
+  const [randomMeme, setRandomMeme] = useState<Meme | null>(null);
+  const [randomMemeId, setRandomMemeId] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const getRandomMeme = () => {
+    setIsTransitioning(true);
+
+    // Delay setting the new meme to allow for fade-out animation
+    setTimeout(() => {
+      const memeIds = Object.keys(typedData);
+      const randomId = memeIds[Math.floor(Math.random() * memeIds.length)];
+      setRandomMeme(typedData[randomId]);
+      setRandomMemeId(randomId);
+
+      // Allow some time for the new meme to fade in
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 600);
+    }, 600);
+  };
+
+  useEffect(() => {
+    getRandomMeme();
+  }, []);
+
   return (
-    <main className="py-4">
+    <main className="pb-4">
       <div className="container">
-        <div className="mx-auto mt-8">
-          <div className="flex flex-col gap-4 justify-end items-end">
-            <Link href="/buscali" className="group">
-              <div className="bg-gray-800 rounded-xl p-6 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
-                <h2 className="text-2xl font-bold text-white group-hover:text-pink-400 transition-colors">
-                Atractive Sniffer
-                </h2>
-              </div>
-            </Link>
-
-            <Link href="/foros" className="group">
-              <div className="bg-gray-800 rounded-xl p-6 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
-                <h2 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
-                Atractive Speaker
-                </h2>
-              </div>
-            </Link>
-
-            {/* <Link href="/numbrus" className="group">
-              <div className="bg-gray-800 rounded-xl p-6 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
-                <h2 className="text-2xl font-bold text-white group-hover:text-purple-400 transition-colors">
-                Atractive Stats
-                </h2>
-              </div>
-            </Link> */}
-            <Link href="/info" className="group">
-              <div className="bg-gray-800 rounded-xl p-6 transition-all duration-300 hover:bg-gray-700 hover:scale-105">
-                <h2 className="text-2xl font-bold text-white group-hover:text-purple-400 transition-colors">
-                Atractive Info
-                </h2>
-              </div>
-            </Link>
+        <div>
+          <div className="flex flex-col gap-4 justify-center items-center">
+            <button
+              onClick={getRandomMeme}
+              className="bg-white p-1 text-emerald-300 text-2xl font-bold rounded hover:bg-emerald-300 hover:text-emerald-900"
+              disabled={isTransitioning}
+            >
+              DALEEEEE
+            </button>
+            <div className={`transition-opacity duration-300 ease-in-out ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
+              {randomMeme && randomMemeId && (
+                <MemeRender
+                  memeId={randomMemeId}
+                  memeData={randomMeme}
+                  onClose={() => {}}
+                  variant="inline"
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
