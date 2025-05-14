@@ -206,7 +206,7 @@ export default function Searcher() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 justify-items-center gap-4 max-w-full mx-auto">
           {memeIds.map((memeId) => (
-            <div key={memeId} data-meme-id={memeId}>
+            <div key={memeId + 'card'} data-meme-id={memeId}>
               <MemeCard
                 memeId={memeId}
                 memeData={typedData[memeId]}

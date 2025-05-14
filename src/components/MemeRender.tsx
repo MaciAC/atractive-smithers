@@ -61,7 +61,8 @@ function CommentSection({ memeData, isModal = false }: { memeData: Meme; isModal
             </div>
           )}
           <div className="divide-y divide-gray-700/50">
-            {memeData.comments.map((comment, index) => (
+            {memeData.comments.length > 0 ? (
+              memeData.comments.map((comment, index) => (
               <div key={index} className="py-3 sm:py-4 space-y-1 sm:space-y-2">
                 <div className="flex items-center space-x-2">
                   <span className="text-gray-300 sm:text-gray-400 font-mono font-bold sm:font-normal text-sm">
@@ -102,7 +103,12 @@ function CommentSection({ memeData, isModal = false }: { memeData: Meme; isModal
                   </div>
                 )}
               </div>
-            ))}
+              ))
+            ) : (
+              <div className="py-4 text-center text-gray-400 font-mono text-sm">
+                sense comentaris...
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -153,7 +159,7 @@ export default function MemeRender({ memeId, memeData, onClose, variant = 'modal
     // Inline variant with responsive layout
     if (variant === 'inline') {
         return (
-            <div className="flex flex-col h-auto max-h-[80vh] w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700 backdrop-blur-md bg-gray-800/70">
+            <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700 backdrop-blur-md bg-gray-800/70">
                 <div className="flex items-center justify-between p-3 border-b border-gray-800/70">
                     <div className="flex items-center space-x-2 overflow-x-auto scrollbar-none">
                         <span className="text-gray-300 font-mono text-sm whitespace-nowrap">#{memeId}</span>
@@ -174,22 +180,20 @@ export default function MemeRender({ memeId, memeData, onClose, variant = 'modal
                     </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row overflow-hidden">
+                <div className="flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(80vh - 50px)' }}>
                     {/* Image Section - responsive */}
-                    <div className="w-full md:w-2/3 aspect-video md:aspect-auto p-2 flex items-center justify-center bg-gray-800/60 backdrop-blur-sm relative">
+                    <div className="w-full md:w-2/3 h-full bg-gray-800/60 backdrop-blur-sm relative flex items-center justify-center">
                         {isLoading ? (
                             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-400"></div>
                         ) : (
-                            <>
-                                <div className="relative w-full h-full max-h-[50vh]">
-                                    <Image
-                                        src={memeFiles[currentImageIndex]?.url || ''}
-                                        alt={`Meme ${memeId}`}
-                                        width={800}
-                                        height={800}
-                                        className="object-contain w-full h-full"
-                                    />
-                                </div>
+                            <div className="relative w-full h-full flex items-center justify-center">
+                                <Image
+                                    src={memeFiles[currentImageIndex]?.url || ''}
+                                    alt={`Meme ${memeId}`}
+                                    width={800}
+                                    height={800}
+                                    className="object-contain max-w-full max-h-full"
+                                />
                                 {memeFiles.length > 1 && (
                                     <>
                                         <button
@@ -209,12 +213,12 @@ export default function MemeRender({ memeId, memeData, onClose, variant = 'modal
                                         </div>
                                     </>
                                 )}
-                            </>
+                            </div>
                         )}
                     </div>
 
                     {/* Comments Section - responsive */}
-                    <div className="w-full md:w-1/3 border-t md:border-t-0 md:border-l border-gray-700/50 bg-gray-800/50 backdrop-blur-md h-[300px] md:h-auto">
+                    <div className="w-full md:w-1/3 border-t md:border-t-0 md:border-l border-gray-700/50 bg-gray-800/50 backdrop-blur-md h-full overflow-hidden">
                         <CommentSection memeData={memeData} />
                     </div>
                 </div>
@@ -251,22 +255,20 @@ export default function MemeRender({ memeId, memeData, onClose, variant = 'modal
                 </button>
             </div>
 
-            <div className="flex flex-1 min-h-0">
+            <div className="flex flex-1 min-h-0" style={{ height: 'calc(90vh - 60px)' }}>
                 {/* Image Section */}
-                <div className="w-2/3 p-4 flex items-center justify-center bg-gray-800 relative">
+                <div className="w-2/3 flex items-center justify-center bg-gray-800 relative h-full">
                     {isLoading ? (
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-600"></div>
                     ) : (
-                        <>
-                            <div className="relative w-full h-full">
-                                <Image
-                                    src={memeFiles[currentImageIndex]?.url || ''}
-                                    alt={`Meme ${memeId}`}
-                                    width={800}
-                                    height={800}
-                                    className="max-w-full max-h-full object-contain"
-                                />
-                            </div>
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            <Image
+                                src={memeFiles[currentImageIndex]?.url || ''}
+                                alt={`Meme ${memeId}`}
+                                width={800}
+                                height={800}
+                                className="max-w-full max-h-full object-contain"
+                            />
                             {memeFiles.length > 1 && (
                                 <>
                                     <button
@@ -286,7 +288,7 @@ export default function MemeRender({ memeId, memeData, onClose, variant = 'modal
                                     </div>
                                 </>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
 
