@@ -24,13 +24,12 @@ function CommentSection({ memeData, isModal = false }: { memeData: Meme; isModal
 
   useEffect(() => {
     if (isModal && scrollContainerRef.current) {
-      // Function to calculate available height
       const calculateHeight = () => {
         const windowHeight = window.innerHeight;
         const containerRect = scrollContainerRef.current?.getBoundingClientRect();
         if (containerRect) {
           const topPosition = containerRect.top;
-          const availableHeight = windowHeight - topPosition - 16; // 16px bottom padding
+          const availableHeight = windowHeight - topPosition - 16;
           setScrollHeight(availableHeight);
         }
       };
@@ -47,8 +46,13 @@ function CommentSection({ memeData, isModal = false }: { memeData: Meme; isModal
   return (
     <div className="h-full flex flex-col" ref={scrollContainerRef}>
       <div
-        className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
-        style={scrollHeight ? { maxHeight: `${scrollHeight}px` } : {}}
+        className="flex-1 overflow-y-auto overflow-x-hidden discreet-scrollbar"
+        style={{
+          ...(scrollHeight ? { maxHeight: `${scrollHeight}px` } : {}),
+          // Explicit scrollbar styling
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(75, 85, 99, 0.3) transparent',
+        }}
       >
         <div className="p-3 sm:p-4 pb-4">
           {memeData.caption && (
