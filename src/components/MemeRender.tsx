@@ -126,7 +126,14 @@ export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
           const response = await fetch(`/api/memes/${memeId}`);
           if (!response.ok) throw new Error('Failed to fetch meme files');
           const data = await response.json();
-          setMemeFiles(data.files);
+
+          // Filter files if exactly 2 files with one MP4
+          if (data.files.length === 2 && data.files.some((file: MemeFile) => file.key.endsWith('.mp4'))) {
+            const mp4File = data.files.find((file: MemeFile) => file.key.endsWith('.mp4'));
+            setMemeFiles([mp4File]);
+          } else {
+            setMemeFiles(data.files);
+          }
         } catch (error) {
           console.error('Error fetching meme files:', error);
         } finally {
@@ -177,19 +184,39 @@ export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
         </div>
 
         <div className="flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(80vh - 50px)' }}>
-            {/* Image Section - responsive */}
-            <div className="w-full md:w-2/3 h-full relative flex items-center justify-center">
+                        {/* Media Section - responsive */}
+                        <div className="w-full md:w-2/3 h-full relative flex items-center justify-center">
                 {isLoading ? (
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-400"></div>
                 ) : (
                     <div className="relative w-full h-full flex items-center justify-center">
-                        <Image
-                            src={memeFiles[currentImageIndex]?.url || ''}
-                            alt={`Meme ${memeId}`}
-                            width={800}
-                            height={800}
-                            className="object-contain max-w-full max-h-full"
-                        />
+                        {memeFiles.length > 0 && (() => {
+                            const currentFile = memeFiles[currentImageIndex];
+                            const fileUrl = currentFile?.url || null;
+                            const fileExtension = fileUrl?.split('?')[0].split('.').pop()?.toLowerCase();
+                            const isVideo = fileExtension === 'mp4' || fileExtension === 'webm' || fileExtension === 'mov';
+                            console.log(fileUrl);
+                            console.log(fileExtension);
+                            return isVideo ? (
+                                <video
+                                    src={fileUrl || ''}
+                                    controls
+                                    autoPlay
+                                    loop
+                                    muted
+                                    className="object-contain max-w-full max-h-full"
+                                />
+                            ) : (
+                                <Image
+                                    src={fileUrl || ''}
+                                    alt={`Meme ${memeId}`}
+                                    width={800}
+                                    height={800}
+                                    className="object-contain max-w-full max-h-full"
+                                />
+                            );
+                        })()}
+
                         {memeFiles.length > 1 && (
                             <>
                                 <button
