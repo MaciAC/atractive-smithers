@@ -155,7 +155,8 @@ export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
     ? format(parsedDate, 'MMM d, yyyy')
     : memeData.date.split('_')[0];
     return (
-        <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700" style={{ backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.15)` }}>            <div className="flex items-center justify-between p-3 border-b border-gray-800/70">
+        <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700 bg-gray-900/50">
+        <div className="flex items-center justify-between p-3 border-b border-gray-800/70">
           <div className="flex items-center space-x-2 overflow-x-auto scrollbar-none">
             <span className="text-gray-300 font-mono text-sm whitespace-nowrap">#{memeId}</span>
             <div className="flex items-center space-x-3 text-gray-400">

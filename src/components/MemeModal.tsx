@@ -16,7 +16,7 @@ export default function MemeModal({ memeId, memeData, onClose }: MemeModalProps)
       onClick={onClose}
     >
       <div
-        className="backdrop-blur-xl bg-black/80 rounded-lg overflow-hidden flex flex-col"
+        className="backdrop-blur-lg rounded-lg overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <MemeRender memeId={memeId} memeData={memeData} onClose={onClose} />
