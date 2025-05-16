@@ -50,7 +50,11 @@ export default function Comments() {
         setComments(data.comments || []);
         setPage(1);
       } else {
-        setComments(prev => [...prev, ...(data.comments || [])]);
+        setComments(prev => {
+          const existingIds = new Set(prev.map((c: CommentWithContext) => c.id));
+          const newComments = (data.comments || []).filter((c: CommentWithContext) => !existingIds.has(c.id));
+          return [...prev, ...newComments];
+        });
         setPage(currentPage + 1);
       }
 
@@ -159,11 +163,11 @@ export default function Comments() {
           )}
         </div>
 
-        <div className="max-w-6xl mx-auto space-y-6 gap-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
           {comments.map((comment, index) => (
             <div
               key={`${comment.post_id}-${comment.id}-${index}`}
-              className="bg-gray-800 rounded-xl p-6 hover:bg-gray-700 transition-colors cursor-pointer"
+              className="bg-gray-800 rounded-xl p-6 hover:bg-gray-700 transition-colors cursor-pointer h-full"
               onClick={() => setSelectedMemeId(comment.post_id)}
             >
               <div className="mb-4">

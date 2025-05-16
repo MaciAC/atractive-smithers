@@ -332,7 +332,7 @@ export async function searchComments({
   const whereConditions = [];
   if (searchQuery) {
     whereConditions.push(`
-      (c.text ILIKE $${paramIndex})
+      (c.text ILIKE $${paramIndex} OR u.username ILIKE $${paramIndex})
     `);
     params.push(`%${searchQuery}%`);
     paramIndex++;
