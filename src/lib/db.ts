@@ -7,6 +7,50 @@ export const prisma = globalForPrisma.prisma || new PrismaClient();
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
+// Export types
+export type Post = {
+  id: string;
+  date: Date;
+  likes: number;
+  caption: string | null;
+  total_comments: number;
+  created_at: Date;
+  multimedia?: Multimedia[];
+  comments?: Comment[];
+};
+
+export type Comment = {
+  id: number;
+  post_id: string;
+  user_id: string;
+  text: string;
+  likes: number;
+  parent_comment_id: number | null;
+  created_at: Date;
+  user?: User;
+  thread_comments?: Comment[];
+};
+
+export type User = {
+  id: string;
+  username: string;
+  is_verified: boolean;
+  profile_pic_url: string | null;
+  created_at: Date;
+};
+
+export type Multimedia = {
+  id: number;
+  post_id: string;
+  type: 'image' | 'video';
+  url: string;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+  display_order: number;
+  created_at: Date;
+};
+
 export async function getUser(userId: string) {
   return await prisma.user.findUnique({
     where: { id: userId }
@@ -43,7 +87,7 @@ export async function getPost(postId: string) {
       id: post.id,
       date: post.date,
       likes: post.likes,
-      caption: post.caption,
+      caption: post.caption || '',
       total_comments: post.total_comments,
       multimedia: post.multimedia,
       comments: post.comments
@@ -96,14 +140,14 @@ export async function searchPosts({
     AND: [
       searchQuery ? {
         OR: [
-          { caption: { contains: searchQuery, mode: 'insensitive' } },
-          { id: { contains: searchQuery, mode: 'insensitive' } },
+          { caption: { contains: searchQuery, mode: 'insensitive' as const } },
+          { id: { contains: searchQuery, mode: 'insensitive' as const } },
           {
             comments: {
               some: {
                 OR: [
-                  { text: { contains: searchQuery, mode: 'insensitive' } },
-                  { user: { username: { contains: searchQuery, mode: 'insensitive' } } }
+                  { text: { contains: searchQuery, mode: 'insensitive' as const } },
+                  { user: { username: { contains: searchQuery, mode: 'insensitive' as const } } }
                 ]
               }
             }
@@ -121,6 +165,18 @@ export async function searchPosts({
       include: {
         multimedia: {
           orderBy: { display_order: 'asc' }
+        },
+        comments: {
+          include: {
+            user: true,
+            thread_comments: {
+              include: {
+                user: true
+              },
+              orderBy: { likes: 'desc' }
+            }
+          },
+          orderBy: { likes: 'desc' }
         },
         _count: {
           select: { comments: true }
@@ -160,8 +216,8 @@ export async function searchComments({
 }) {
   const where = searchQuery ? {
     OR: [
-      { text: { contains: searchQuery, mode: 'insensitive' } },
-      { user: { username: { contains: searchQuery, mode: 'insensitive' } } }
+      { text: { contains: searchQuery, mode: 'insensitive' as const } },
+      { user: { username: { contains: searchQuery, mode: 'insensitive' as const } } }
     ]
   } : {};
 
@@ -201,4 +257,4 @@ export async function searchComments({
 }
 
 // Types matching the database schema
-export type { User, Post, Comment, Multimedia } from '@prisma/client';
+export type { Prisma as PrismaTypes } from '@prisma/client';

@@ -2,20 +2,58 @@
 
 import { useState, useEffect, useCallback } from "react";
 import MemeModal from "../../components/MemeModal";
-import { Comment, Post, User } from "@/lib/db";
 import { Meme } from "@/types/meme";
 
 const COMMENTS_PER_PAGE = 20;
 
-interface CommentWithContext extends Comment {
+type CommentWithContext = {
+  id: number;
   post_id: string;
+  user_id: string;
+  text: string;
+  likes: number;
+  parent_comment_id: number | null;
+  created_at: Date;
+  user: {
+    id: string;
+    username: string;
+    is_verified: boolean;
+    profile_pic_url: string | null;
+  };
+  thread_comments: Array<{
+    id: number;
+    text: string;
+    likes: number;
+    user: {
+      id: string;
+      username: string;
+      is_verified: boolean;
+      profile_pic_url: string | null;
+    };
+  }>;
   caption: string | null;
-}
+};
 
-interface PostData {
-  post: Post;
-  comments: (Comment & {owner: User})[];
-}
+type PostData = {
+  post: {
+    id: string;
+    date: Date;
+    likes: number;
+    caption: string | null;
+    total_comments: number;
+    multimedia: Array<{
+      id: number;
+      type: 'image' | 'video';
+      url: string;
+      width: number | null;
+      height: number | null;
+      duration: number | null;
+      display_order: number;
+    }>;
+    comments: CommentWithContext[];
+  };
+  comments: CommentWithContext[];
+};
 
 export default function Comments() {
   const [comments, setComments] = useState<CommentWithContext[]>([]);
@@ -113,32 +151,32 @@ export default function Comments() {
   }, [selectedMemeId, loadPostData]);
 
   // Convert database format to Meme format
-  const convertToMeme = (post: Post, comments: (Comment & {owner: User})[]): Meme => {
+  const convertToMeme = (post: PostData['post'], comments: CommentWithContext[]): Meme => {
     return {
       date: post.date.toString(),
       likes: post.likes,
-      caption: post.caption,
+      caption: post.caption || '',
       total_comments: post.total_comments,
-      multimedia: post.multimedia || [],
+      multimedia: post.multimedia,
       comments: comments.map(comment => ({
         text: comment.text,
         likes: comment.likes,
         owner: {
-          id: comment.owner?.id || '',
-          username: comment.owner?.username || '',
-          is_verified: comment.owner?.is_verified || false,
-          profile_pic_url: comment.owner?.profile_pic_url || ''
+          id: comment.user.id,
+          username: comment.user.username,
+          is_verified: comment.user.is_verified,
+          profile_pic_url: comment.user.profile_pic_url || ''
         },
-        thread_comments: comment.thread_comments?.map(threadComment => ({
+        thread_comments: comment.thread_comments.map(threadComment => ({
           text: threadComment.text,
           likes: threadComment.likes,
           owner: {
-            id: threadComment.owner?.id || '',
-            username: threadComment.owner?.username || '',
-            is_verified: threadComment.owner?.is_verified || false,
-            profile_pic_url: threadComment.owner?.profile_pic_url || ''
+            id: threadComment.user.id,
+            username: threadComment.user.username,
+            is_verified: threadComment.user.is_verified,
+            profile_pic_url: threadComment.user.profile_pic_url || ''
           }
-        })) || []
+        }))
       }))
     };
   };
@@ -172,8 +210,8 @@ export default function Comments() {
             >
               <div className="mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-white">{comment.owner?.username}</span>
-                  {comment.owner?.is_verified && (
+                  <span className="font-bold text-white">{comment.user?.username}</span>
+                  {comment.user?.is_verified && (
                     <span className="text-blue-400">✓</span>
                   )}
                 </div>

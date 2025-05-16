@@ -1,9 +1,9 @@
 "use client";
 
-import { Post, Comment, User } from "@/lib/db";
 import { useState, useEffect, useCallback } from "react";
 import MemeRender from "@/components/MemeRender";
 import { Meme } from "@/types/meme";
+import { Post, Comment } from "@/lib/db";
 
 export default function Home() {
   const [randomMemeId, setRandomMemeId] = useState<string | null>(null);
@@ -42,23 +42,23 @@ export default function Home() {
         caption: data.post.caption,
         total_comments: data.post.total_comments,
         multimedia: data.post.multimedia || [],
-        comments: (data.comments || []).map((comment: Comment & { owner: User }) => ({
+        comments: (data.comments || []).map((comment: Comment) => ({
           text: comment.text,
           likes: comment.likes,
           owner: {
-            id: comment.owner?.id || '',
-            username: comment.owner?.username || '',
-            is_verified: comment.owner?.is_verified || false,
-            profile_pic_url: comment.owner?.profile_pic_url || ''
+            id: comment.user?.id || '',
+            username: comment.user?.username || '',
+            is_verified: comment.user?.is_verified || false,
+            profile_pic_url: comment.user?.profile_pic_url || ''
           },
           thread_comments: (comment.thread_comments || []).map((tc: Comment) => ({
             text: tc.text,
             likes: tc.likes,
             owner: {
-              id: tc.owner?.id || '',
-              username: tc.owner?.username || '',
-              is_verified: tc.owner?.is_verified || false,
-              profile_pic_url: tc.owner?.profile_pic_url || ''
+              id: tc.user?.id || '',
+              username: tc.user?.username || '',
+              is_verified: tc.user?.is_verified || false,
+              profile_pic_url: tc.user?.profile_pic_url || ''
             }
           }))
         }))

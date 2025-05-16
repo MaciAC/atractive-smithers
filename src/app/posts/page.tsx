@@ -167,10 +167,10 @@ export default function Searcher() {
     return {
       date: post.date.toString(),
       likes: post.likes,
-      caption: post.caption,
+      caption: post.caption || '',
       total_comments: post.total_comments,
       comments: [], // Comments will be loaded separately when opening the modal
-      multimedia: post.multimedia.map(m => ({
+      multimedia: post.multimedia?.map((m: Multimedia) => ({
         id: m.id,
         type: m.type,
         url: m.url,
@@ -178,7 +178,7 @@ export default function Searcher() {
         height: m.height,
         duration: m.duration,
         display_order: m.display_order
-      }))
+      })) || []
     };
   };
 
@@ -261,9 +261,9 @@ export default function Searcher() {
             memeData={{
               date: selectedMemeData.date.toString(),
               likes: selectedMemeData.likes,
-              caption: selectedMemeData.caption,
+              caption: selectedMemeData.caption || '',
               total_comments: selectedMemeData.total_comments,
-              multimedia: selectedMemeData.multimedia.map((m: Multimedia) => ({
+              multimedia: selectedMemeData.multimedia?.map((m: Multimedia) => ({
                 id: m.id,
                 type: m.type,
                 url: m.url,
@@ -271,27 +271,27 @@ export default function Searcher() {
                 height: m.height,
                 duration: m.duration,
                 display_order: m.display_order
-              })),
-              comments: selectedMemeData.comments.map((comment: Comment) => ({
+              })) || [],
+              comments: selectedMemeData.comments?.map((comment: Comment) => ({
                 text: comment.text,
                 likes: comment.likes,
                 owner: {
-                  id: comment.owner?.id || '',
-                  username: comment.owner?.username || '',
-                  is_verified: comment.owner?.is_verified || false,
-                  profile_pic_url: comment.owner?.profile_pic_url || ''
+                  id: comment.user?.id || '',
+                  username: comment.user?.username || '',
+                  is_verified: comment.user?.is_verified || false,
+                  profile_pic_url: comment.user?.profile_pic_url || ''
                 },
                 thread_comments: comment.thread_comments?.map((tc: Comment) => ({
                   text: tc.text,
                   likes: tc.likes,
                   owner: {
-                    id: tc.owner?.id || '',
-                    username: tc.owner?.username || '',
-                    is_verified: tc.owner?.is_verified || false,
-                    profile_pic_url: tc.owner?.profile_pic_url || ''
+                    id: tc.user?.id || '',
+                    username: tc.user?.username || '',
+                    is_verified: tc.user?.is_verified || false,
+                    profile_pic_url: tc.user?.profile_pic_url || ''
                   }
                 })) || []
-              }))
+              })) || []
             }}
             onClose={() => setSelectedMemeId(null)}
           />
