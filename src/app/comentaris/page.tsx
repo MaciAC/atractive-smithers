@@ -7,7 +7,7 @@ import { Meme } from "@/types/meme";
 
 const COMMENTS_PER_PAGE = 20;
 
-type SortOption = 'likes' | 'date';
+type SortOption = 'likes' | 'date' | 'date_reverse';
 
 interface CommentWithContext extends Comment {
   post_id: string;
@@ -24,11 +24,11 @@ export default function Comments() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>('likes');
   const [selectedMemeId, setSelectedMemeId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [selectedMemeData, setSelectedMemeData] = useState<PostData | null>(null);
-
+  const [totalComments, setTotalComments] = useState(0);
+  const sortBy = 'likes';
   // Fetch comments when search or sort changes
   const fetchComments = useCallback(async (newSearch = false) => {
     if (isLoading) return;
@@ -43,6 +43,7 @@ export default function Comments() {
       }
       url.searchParams.append('sort', sortBy);
       url.searchParams.append('page', currentPage.toString());
+      url.searchParams.append('limit', COMMENTS_PER_PAGE.toString());
 
       const response = await fetch(url);
       const data = await response.json();
@@ -55,7 +56,8 @@ export default function Comments() {
         setPage(currentPage + 1);
       }
 
-      setHasMore((data.comments || []).length === COMMENTS_PER_PAGE);
+      setTotalComments(data.total || 0);
+      setHasMore(data.hasMore);
     } catch (error) {
       console.error('Failed to fetch comments:', error);
     } finally {
@@ -82,8 +84,8 @@ export default function Comments() {
 
   // Initial load
   useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
+    fetchComments(true);
+  }, [searchQuery, sortBy]);
 
   // Handle infinite scroll
   useEffect(() => {
@@ -145,28 +147,20 @@ export default function Comments() {
           <div className="flex gap-4">
             <input
               type="text"
-              placeholder="Search by username..."
+              placeholder="Busca..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-gray-600 text-white font-mono"
             />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-gray-600 text-white font-mono"
-            >
-              <option value="likes">Sort by Likes</option>
-              <option value="date">Sort by Date</option>
-            </select>
           </div>
           {searchQuery && (
             <div className="text-gray-400 text-sm font-mono">
-              Found {comments.length} comments from user &quot;{searchQuery}&quot;
+              Found {totalComments} comentaris buscant &quot;{searchQuery}&quot;
             </div>
           )}
         </div>
 
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {comments.map((comment, index) => (
             <div
               key={`${comment.post_id}-${comment.id}-${index}`}

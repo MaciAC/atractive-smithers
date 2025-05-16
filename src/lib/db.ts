@@ -304,7 +304,7 @@ export async function searchComments({
   limit = 20
 }: {
   searchQuery?: string;
-  sortBy?: 'likes' | 'date';
+  sortBy?: 'likes' | 'date' | 'date_reverse';
   page?: number;
   limit?: number;
 }) {
@@ -312,7 +312,7 @@ export async function searchComments({
   const params: unknown[] = [];
   let paramIndex = 1;
 
-  // Build the base query
+  // Build the base query with all necessary joins and data in one go
   let sql = `
     WITH comment_data AS (
       SELECT
@@ -326,15 +326,13 @@ export async function searchComments({
       JOIN posts p ON c.post_id = p.id
       JOIN users u ON c.user_id = u.id
       LEFT JOIN comments c2 ON c2.parent_comment_id = c.id
-  `;
+    `;
 
   // Add WHERE conditions
   const whereConditions = [];
   if (searchQuery) {
     whereConditions.push(`
-      (c.text ILIKE $${paramIndex} OR
-       u.username ILIKE $${paramIndex} OR
-       p.caption ILIKE $${paramIndex})
+      (c.text ILIKE $${paramIndex})
     `);
     params.push(`%${searchQuery}%`);
     paramIndex++;
@@ -344,10 +342,34 @@ export async function searchComments({
     sql += ' WHERE ' + whereConditions.join(' AND ');
   }
 
-  sql += ' GROUP BY c.id, p.caption, u.username, u.is_verified, u.profile_pic_url';
+  sql += ' GROUP BY c.id, p.caption, u.username, u.is_verified, u.profile_pic_url)';
+
+  // Main query selecting from the CTE
+  sql += `
+    SELECT
+      cd.*,
+      jsonb_build_object(
+        'id', cd.user_id,
+        'username', cd.username,
+        'is_verified', cd.is_verified,
+        'profile_pic_url', cd.profile_pic_url
+      ) as owner
+    FROM comment_data cd
+  `;
 
   // Add ordering
-  sql += ` ORDER BY ${sortBy === 'date' ? 'c.created_at' : 'c.likes'} DESC`;
+  switch (sortBy) {
+    case 'likes':
+      sql += ' ORDER BY cd.likes DESC';
+      break;
+    case 'date_reverse':
+      sql += ' ORDER BY cd.created_at ASC';
+      break;
+    case 'date':
+    default:
+      sql += ' ORDER BY cd.created_at DESC';
+      break;
+  }
 
   // Add pagination
   sql += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
@@ -367,16 +389,31 @@ export async function searchComments({
     query<{ total: number }>(countSql, params.slice(0, -2))
   ]);
 
-  // Get thread comments for each comment
-  for (const comment of comments) {
-    comment.thread_comments = await query<Comment>(
+  // Get thread comments for each comment in a single query
+  const commentIds = comments.map(c => c.id);
+  if (commentIds.length > 0) {
+    const threadComments = await query<Comment>(
       `SELECT c.*, u.username, u.is_verified, u.profile_pic_url
        FROM comments c
        JOIN users u ON c.user_id = u.id
-       WHERE c.parent_comment_id = $1
+       WHERE c.parent_comment_id = ANY($1)
        ORDER BY c.likes DESC`,
-      [comment.id]
+      [commentIds]
     );
+
+    // Organize thread comments by parent comment
+    const threadCommentsByParent = threadComments.reduce((acc, comment) => {
+      if (!acc[comment.parent_comment_id!]) {
+        acc[comment.parent_comment_id!] = [];
+      }
+      acc[comment.parent_comment_id!].push(comment);
+      return acc;
+    }, {} as Record<number, Comment[]>);
+
+    // Add thread comments to their parent comments
+    comments.forEach(comment => {
+      comment.thread_comments = threadCommentsByParent[comment.id] || [];
+    });
   }
 
   return {

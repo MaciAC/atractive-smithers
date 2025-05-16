@@ -7,29 +7,18 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const searchQuery = searchParams.get('q') || '';
     const sortBy = searchParams.get('sort') || 'likes';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
 
-    // Get comments with search
-    let comments: Comment[];
-    if (searchQuery) {
-      const result = await searchComments({ searchQuery });
-      comments = result.comments;
-    } else {
-      // Get all comments, limit to 100 for performance
-      comments = await query(
-        `SELECT c.*, p.caption
-         FROM comments c
-         JOIN posts p ON c.post_id = p.id
-         ORDER BY ${sortBy === 'date' ? 'c.created_at' : 'c.likes'} DESC
-         LIMIT 100`
-      );
-    }
+    // Get comments with search and pagination
+    const result = await searchComments({
+      searchQuery,
+      sortBy: sortBy as 'likes' | 'date' | 'date_reverse',
+      page,
+      limit
+    });
 
-    // Add user information to each comment
-    for (const comment of comments) {
-      comment.owner = await getUser(comment.user_id);
-    }
-
-    return NextResponse.json({ comments });
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching comments:', error);
     return NextResponse.json(
