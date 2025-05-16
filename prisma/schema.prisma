@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id
+  username       String    @unique
+  is_verified    Boolean   @default(false)
+  profile_pic_url String?
+  comments       Comment[]
+  created_at     DateTime  @default(now())
+}
+
+model Post {
+  id            String      @id
+  date          DateTime
+  likes         Int         @default(0)
+  caption       String?
+  total_comments Int        @default(0)
+  multimedia    Multimedia[]
+  comments      Comment[]
+  created_at    DateTime    @default(now())
+}
+
+model Comment {
+  id               Int       @id @default(autoincrement())
+  post_id          String
+  user_id          String
+  text             String
+  likes            Int       @default(0)
+  parent_comment_id Int?
+  created_at       DateTime  @default(now())
+  post             Post      @relation(fields: [post_id], references: [id])
+  user             User      @relation(fields: [user_id], references: [id])
+  parent_comment   Comment?  @relation("CommentToComment", fields: [parent_comment_id], references: [id])
+  thread_comments  Comment[] @relation("CommentToComment")
+}
+
+model Multimedia {
+  id            Int      @id @default(autoincrement())
+  post_id       String
+  type          String   // 'image' or 'video'
+  url           String
+  width         Int?
+  height        Int?
+  duration      Int?
+  display_order Int
+  created_at    DateTime @default(now())
+  post          Post     @relation(fields: [post_id], references: [id])
+}
