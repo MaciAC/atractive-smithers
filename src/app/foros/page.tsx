@@ -2,18 +2,21 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import MemeModal from "../../components/MemeModal";
-import allData from "../../../public/all_data.json";
-import { Meme, Comment } from "../../types/meme";
+import { Comment, Post, User } from "@/lib/db";
+import { Meme } from "@/types/meme";
 
-const typedData = allData as Record<string, Meme>;
 const COMMENTS_PER_PAGE = 20;
 
 type SortOption = 'likes' | 'date';
 
-interface CommentWithContext {
-  comment: Comment;
-  memeId: string;
-  memeCaption: string | null;
+interface CommentWithContext extends Comment {
+  post_id: string;
+  caption: string | null;
+}
+
+interface PostData {
+  post: Post;
+  comments: (Comment & {owner: User})[];
 }
 
 export default function Comments() {
@@ -23,82 +26,66 @@ export default function Comments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>('likes');
   const [selectedMemeId, setSelectedMemeId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [selectedMemeData, setSelectedMemeData] = useState<PostData | null>(null);
 
-  // Pre-process all comments once when component mounts
-  const allComments = useMemo(() => {
-    const comments: CommentWithContext[] = [];
-
-    Object.entries(typedData).forEach(([memeId, meme]) => {
-      const processComment = (comment: Comment) => {
-        comments.push({
-          comment,
-          memeId,
-          memeCaption: meme.caption
-        });
-
-        comment.thread_comments?.forEach(threadComment => {
-          processComment(threadComment);
-        });
-      };
-
-      meme.comments?.forEach(comment => processComment(comment));
-    });
-
-    return comments;
-  }, []);
-
-  // Memoize filtered and sorted comments
-  const filteredAndSortedComments = useMemo(() => {
-    let filtered = allComments;
-
-    if (searchQuery) {
-      const lowerQuery = searchQuery.toLowerCase();
-      filtered = allComments.filter(({ comment }) =>
-        comment.owner.username?.toLowerCase().includes(lowerQuery) ||
-        comment.text.toLowerCase().includes(lowerQuery)
-      );
-    }
-
-    return [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'likes':
-          return b.comment.likes - a.comment.likes;
-        case 'date':
-        default:
-          return b.memeId.localeCompare(a.memeId);
-      }
-    });
-  }, [allComments, searchQuery, sortBy]);
-
-  const loadMoreComments = useCallback(() => {
-    if (isLoading || !hasMore) return;
+  // Fetch comments when search or sort changes
+  const fetchComments = useCallback(async (newSearch = false) => {
+    if (isLoading) return;
 
     setIsLoading(true);
-    const remainingComments = filteredAndSortedComments.filter(
-      comment => !comments.some(c =>
-        c.comment === comment.comment && c.memeId === comment.memeId
-      )
-    );
+    const currentPage = newSearch ? 1 : page;
 
-    if (remainingComments.length === 0) {
-      setHasMore(false);
+    try {
+      const url = new URL('/api/comments', window.location.origin);
+      if (searchQuery) {
+        url.searchParams.append('q', searchQuery);
+      }
+      url.searchParams.append('sort', sortBy);
+      url.searchParams.append('page', currentPage.toString());
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (newSearch) {
+        setComments(data.comments || []);
+        setPage(1);
+      } else {
+        setComments(prev => [...prev, ...(data.comments || [])]);
+        setPage(currentPage + 1);
+      }
+
+      setHasMore((data.comments || []).length === COMMENTS_PER_PAGE);
+    } catch (error) {
+      console.error('Failed to fetch comments:', error);
+    } finally {
       setIsLoading(false);
-      return;
     }
+  }, [isLoading, page, searchQuery, sortBy]);
 
-    const newComments = remainingComments.slice(0, Math.min(COMMENTS_PER_PAGE, remainingComments.length));
-    setComments(prev => [...prev, ...newComments]);
-    setHasMore(comments.length + newComments.length < filteredAndSortedComments.length);
-    setIsLoading(false);
-  }, [comments, isLoading, hasMore, filteredAndSortedComments]);
+  const loadMoreComments = useCallback(() => {
+    if (!isLoading && hasMore) {
+      fetchComments();
+    }
+  }, [fetchComments, isLoading, hasMore]);
 
-  // Reset and load initial comments when search or sort changes
+  // Load post data when a post is selected
+  const loadPostData = useCallback(async (postId: string) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}`);
+      const data = await response.json();
+      setSelectedMemeData(data);
+    } catch (error) {
+      console.error('Failed to fetch post data:', error);
+    }
+  }, []);
+
+  // Initial load
   useEffect(() => {
-    const initialComments = filteredAndSortedComments.slice(0, COMMENTS_PER_PAGE);
-    setComments(initialComments);
-    setHasMore(initialComments.length < filteredAndSortedComments.length);
-  }, [filteredAndSortedComments]);
+    fetchComments(true);
+  }, [searchQuery, sortBy]);
 
+  // Handle infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -112,6 +99,43 @@ export default function Comments() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [loadMoreComments]);
+
+  // Load post data when selected
+  useEffect(() => {
+    if (selectedMemeId) {
+      loadPostData(selectedMemeId);
+    }
+  }, [selectedMemeId, loadPostData]);
+
+  // Convert database format to Meme format
+  const convertToMeme = (post: Post, comments: (Comment & {owner: User})[]): Meme => {
+    return {
+      date: post.date.toString(),
+      likes: post.likes,
+      caption: post.caption,
+      total_comments: post.total_comments,
+      comments: comments.map(comment => ({
+        text: comment.text,
+        likes: comment.likes,
+        owner: {
+          id: comment.owner?.id || '',
+          username: comment.owner?.username || '',
+          is_verified: comment.owner?.is_verified || false,
+          profile_pic_url: comment.owner?.profile_pic_url || ''
+        },
+        thread_comments: comment.thread_comments?.map(threadComment => ({
+          text: threadComment.text,
+          likes: threadComment.likes,
+          owner: {
+            id: threadComment.owner?.id || '',
+            username: threadComment.owner?.username || '',
+            is_verified: threadComment.owner?.is_verified || false,
+            profile_pic_url: threadComment.owner?.profile_pic_url || ''
+          }
+        })) || []
+      }))
+    };
+  };
 
   return (
     <main className="min-h-screen py-8">
@@ -142,16 +166,16 @@ export default function Comments() {
         </div>
 
         <div className="max-w-4xl mx-auto space-y-6">
-          {comments.map(({ comment, memeId, memeCaption }, index) => (
+          {comments.map((comment, index) => (
             <div
-              key={`${memeId}-${index}`}
+              key={`${comment.post_id}-${comment.id}-${index}`}
               className="bg-gray-800 rounded-xl p-6 hover:bg-gray-700 transition-colors cursor-pointer"
-              onClick={() => setSelectedMemeId(memeId)}
+              onClick={() => setSelectedMemeId(comment.post_id)}
             >
               <div className="mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-white">{comment.owner.username}</span>
-                  {comment.owner.is_verified && (
+                  <span className="font-bold text-white">{comment.owner?.username}</span>
+                  {comment.owner?.is_verified && (
                     <span className="text-blue-400">✓</span>
                   )}
                 </div>
@@ -160,9 +184,9 @@ export default function Comments() {
                 </div>
               </div>
               <p className="text-white mb-4">{comment.text}</p>
-              {memeCaption && (
+              {comment.caption && (
                 <div className="text-sm text-gray-400 italic">
-                  Comment on: &quot;{memeCaption}&quot;
+                  Comment on: &quot;{comment.caption}&quot;
                 </div>
               )}
             </div>
@@ -180,10 +204,10 @@ export default function Comments() {
           </div>
         )}
 
-        {selectedMemeId && (
+        {selectedMemeId && selectedMemeData && (
           <MemeModal
             memeId={selectedMemeId}
-            memeData={typedData[selectedMemeId]}
+            memeData={convertToMeme(selectedMemeData.post, selectedMemeData.comments)}
             onClose={() => setSelectedMemeId(null)}
           />
         )}

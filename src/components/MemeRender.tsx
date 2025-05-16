@@ -152,15 +152,35 @@ export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
       setCurrentImageIndex((prev) => (prev - 1 + memeFiles.length) % memeFiles.length);
     };
 
-    // Parse the date from the ID format: YYYY-MM-DD_HH-mm-ss_UTC
-    const [datePart, timePart] = memeData.date.split('_');
-    const timeWithColons = timePart.replace(/-/g, ':');
-    const dateStr = `${datePart}T${timeWithColons}Z`;
-    const parsedDate = parseISO(dateStr);
+    // Parse the date - handle both old and new formats
+    let parsedDate;
+    const dateString = memeData.date.toString();
 
+    // Try to parse directly first (for new format from PostgreSQL)
+    parsedDate = parseISO(dateString);
+
+    // If that fails, try the old format (YYYY-MM-DD_HH-mm-ss_UTC)
+    if (!isValid(parsedDate) && dateString.includes('_')) {
+      try {
+        const [datePart, timePart] = dateString.split('_');
+        if (timePart) {
+          const timeWithColons = timePart.replace(/-/g, ':');
+          const dateStr = `${datePart}T${timeWithColons}Z`;
+          parsedDate = parseISO(dateStr);
+        } else {
+          // If only date part is available
+          parsedDate = parseISO(datePart);
+        }
+      } catch (error) {
+        console.error('Error parsing date:', error);
+      }
+    }
+
+    // Format the date or fall back to a simple display
     const formattedDate = isValid(parsedDate)
-    ? format(parsedDate, 'MMM d, yyyy')
-    : memeData.date.split('_')[0];
+      ? format(parsedDate, 'MMM d, yyyy')
+      : dateString.split('_')[0] || dateString.split('T')[0] || dateString;
+
     return (
         <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700 bg-gray-900/50">
         <div className="flex items-center justify-between p-3 border-b border-gray-800/70">
