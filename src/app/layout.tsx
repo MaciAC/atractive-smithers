@@ -98,14 +98,14 @@ export default function RootLayout({
                   {/* Spacer to balance the right side */}
                 </div>
                 <div className="flex flex-row gap-4 z-10 pt-12 md:pt-0">
-                  <Link href="/buscali" className="group">
+                  <Link href="/posts" className="group">
                     <div className="bg-emerald-800 rounded-xl p-2 transition-all duration-300 hover:bg-emerald-700 hover:scale-105">
                       <h2 className="text-2xl font-bold text-white group-hover:text-pink-400 transition-colors">
                         🔍
                       </h2>
                     </div>
                   </Link>
-                  <Link href="/foros" className="group">
+                  <Link href="/comentaris" className="group">
                     <div className="bg-amber-800 rounded-xl p-2 transition-all duration-300 hover:bg-amber-700 hover:scale-105">
                       <h2 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
                         💬

@@ -11,8 +11,7 @@ import {
   TimeScale,
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
-import { format, parseISO, isValid, subMonths, addMonths } from 'date-fns';
-import { Meme } from '../types/meme';
+import { format, parseISO, isValid, subMonths } from 'date-fns';
 import { useState, useMemo } from 'react';
 
 ChartJS.register(
@@ -26,40 +25,41 @@ ChartJS.register(
   TimeScale
 );
 
-interface MemeStatsChartProps {
-  memes: Record<string, Meme>;
+interface StatData {
+  day: string;
+  total_likes: number;
+  post_count: number;
+  total_comments: number;
 }
 
-export default function MemeStatsChart({ memes }: MemeStatsChartProps) {
+interface MemeStatsChartProps {
+  statsData: StatData[];
+}
+
+export default function MemeStatsChart({ statsData }: MemeStatsChartProps) {
   // Process data for the chart
   const chartData = useMemo(() =>
-    Object.entries(memes)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .map(([_, meme]) => {
-        // Convert date from "YYYY-MM-DD_HH-mm-ss_UTC" to "YYYY-MM-DDTHH:mm:ssZ"
-        const [datePart, timePart] = meme.date.split('_');
-        const timeWithColons = timePart.replace(/-/g, ':');
-        const dateStr = `${datePart}T${timeWithColons}Z`;
-
-        const parsedDate = parseISO(dateStr);
-        if (!isValid(parsedDate)) {
-          console.warn('Invalid date:', meme.date, 'parsed as:', dateStr);
-          return null;
-        }
-        return {
-          date: parsedDate,
-          likes: meme.likes,
-          comments: meme.total_comments,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null)
-      .sort((a, b) => a.date.getTime() - b.date.getTime()),
-    [memes]
+    statsData.map(stat => {
+      const parsedDate = parseISO(stat.day);
+      if (!isValid(parsedDate)) {
+        console.warn('Invalid date:', stat.day);
+        return null;
+      }
+      return {
+        date: parsedDate,
+        likes: Number(stat.total_likes),
+        comments: Number(stat.total_comments),
+        posts: Number(stat.post_count)
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null)
+    .sort((a, b) => a.date.getTime() - b.date.getTime()),
+    [statsData]
   );
 
   const [dateRange, setDateRange] = useState({
-    start: chartData[0]?.date || subMonths(new Date(), 1),
-    end: chartData[chartData.length - 1]?.date || addMonths(new Date(), 1),
+    start: chartData.length > 0 ? chartData[0]?.date : subMonths(new Date(), 1),
+    end: chartData.length > 0 ? chartData[chartData.length - 1]?.date : new Date(),
   });
 
   const filteredData = chartData.filter(
@@ -88,6 +88,16 @@ export default function MemeStatsChart({ memes }: MemeStatsChartProps) {
         backgroundColor: 'rgba(53, 162, 235, 0.5)',
         tension: 0.1,
       },
+      {
+        label: 'Posts',
+        data: filteredData.map(item => ({
+          x: item.date,
+          y: item.posts,
+        })),
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        tension: 0.1,
+      }
     ],
   };
 
