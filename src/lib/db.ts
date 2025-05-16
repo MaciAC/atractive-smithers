@@ -5,11 +5,14 @@ const globalPool = global as unknown as { pool: Pool | undefined };
 
 const getPool = (): Pool => {
   if (!globalPool.pool) {
+    const connectionString = process.env.POSTGRES_URL;
+    const isProduction = process.env.NODE_ENV === 'production';
+
     globalPool.pool = new Pool({
-      connectionString: process.env.POSTGRES_URL,
-      ssl: {
+      connectionString,
+      ssl: isProduction ? {
         rejectUnauthorized: false
-      }
+      } : false
     });
   }
   return globalPool.pool;
