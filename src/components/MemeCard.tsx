@@ -41,14 +41,14 @@ export default function MemeCard({ memeId, memeData, onSelect, shouldLoadImage }
 
   return (
     <div
-      className="w-[300px] bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-gray-700 transition-all duration-200 cursor-pointer"
+      className="w-[300px] backdrop-blur-sm rounded-lg overflow-hidden hover:border-gray-700 transition-all duration-200 cursor-pointer"
       onClick={() => onSelect(memeId)}
     >
-      <div className="w-full h-[300px] bg-gray-800 flex items-center justify-center">
+      <div className="w-full h-[300px] flex items-center justify-center">
         {!shouldLoadImage ? (
-          <div className="w-full h-full bg-gray-800 animate-pulse" />
+          <div className="w-full h-full animate-pulse" />
         ) : isLoading ? (
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 "></div>
         ) : (
           <div className="relative w-full h-full">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -81,11 +81,10 @@ export default function MemeCard({ memeId, memeData, onSelect, shouldLoadImage }
 
       <div className="p-3">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-400 font-mono">#{memeId}</span>
-          <div className="flex items-center space-x-2 text-gray-500">
-            <span>{memeData.likes}</span>
-            <span>•</span>
-            <span>{memeData.total_comments}</span>
+          <span className="text-white font-mono">#{memeId}</span>
+          <div className="flex items-center space-x-2 text-white">
+            <span>{memeData.likes} ❤︎ </span>
+            <span>{memeData.total_comments} ⋯</span>
           </div>
         </div>
         {memeData.caption && (

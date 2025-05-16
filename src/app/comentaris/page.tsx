@@ -167,7 +167,7 @@ export default function Comments() {
           {comments.map((comment, index) => (
             <div
               key={`${comment.post_id}-${comment.id}-${index}`}
-              className="bg-gray-800 rounded-xl p-6 hover:bg-gray-700 transition-colors cursor-pointer h-full"
+              className="backdrop-blur-sm rounded-xl p-6 hover:backdrop-blur-md transition-colors cursor-pointer h-full"
               onClick={() => setSelectedMemeId(comment.post_id)}
             >
               <div className="mb-4">
@@ -198,7 +198,7 @@ export default function Comments() {
         )}
         {!hasMore && comments.length > 0 && (
           <div className="text-gray-500 text-center py-4 font-mono">
-            No more comments to load
+            No n'hi ha més...
           </div>
         )}
 

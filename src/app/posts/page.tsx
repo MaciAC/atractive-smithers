@@ -205,7 +205,7 @@ export default function Searcher() {
               <option value="comments">Més comentaris primer</option>
             </select>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 justify-center">
             <input
               type="date"
               value={startDate}
