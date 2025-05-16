@@ -198,7 +198,7 @@ export default function Comments() {
         )}
         {!hasMore && comments.length > 0 && (
           <div className="text-gray-500 text-center py-4 font-mono">
-            No n'hi ha més...
+            No n&apos;hi ha més...
           </div>
         )}
 
