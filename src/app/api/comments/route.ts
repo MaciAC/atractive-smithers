@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { searchComments, query, getUser } from '@/lib/db';
+import { Comment } from '@/lib/db';
 
 export async function GET(request: Request) {
   try {
@@ -8,9 +9,10 @@ export async function GET(request: Request) {
     const sortBy = searchParams.get('sort') || 'likes';
 
     // Get comments with search
-    let comments;
+    let comments: Comment[];
     if (searchQuery) {
-      comments = await searchComments(searchQuery);
+      const result = await searchComments({ searchQuery });
+      comments = result.comments;
     } else {
       // Get all comments, limit to 100 for performance
       comments = await query(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import MemeModal from "../../components/MemeModal";
 import { Comment, Post, User } from "@/lib/db";
 import { Meme } from "@/types/meme";
@@ -82,8 +82,8 @@ export default function Comments() {
 
   // Initial load
   useEffect(() => {
-    fetchComments(true);
-  }, [searchQuery, sortBy]);
+    fetchComments();
+  }, [fetchComments]);
 
   // Handle infinite scroll
   useEffect(() => {
@@ -114,6 +114,7 @@ export default function Comments() {
       likes: post.likes,
       caption: post.caption,
       total_comments: post.total_comments,
+      multimedia: post.multimedia || [],
       comments: comments.map(comment => ({
         text: comment.text,
         likes: comment.likes,

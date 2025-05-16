@@ -15,7 +15,7 @@ const getPool = (): Pool => {
   return globalPool.pool;
 };
 
-export async function query<T = any>(text: string, params: any[] = []): Promise<T[]> {
+export async function query<T = unknown>(text: string, params: unknown[] = []): Promise<T[]> {
   const pool = getPool();
   const start = Date.now();
   try {
@@ -34,7 +34,15 @@ export async function getUser(userId: string) {
 }
 
 export async function getPost(postId: string) {
-  const result = await query(`
+  const result = await query<{
+    id: string;
+    date: Date;
+    likes: number;
+    caption: string;
+    total_comments: number;
+    multimedia: Multimedia[];
+    comments: Comment[];
+  }>(`
     WITH post_data AS (
       SELECT p.*,
              COUNT(DISTINCT c.id) as comment_count,
@@ -130,7 +138,8 @@ export async function getPost(postId: string) {
       likes: postData.likes,
       caption: postData.caption,
       total_comments: postData.total_comments,
-      multimedia: postData.multimedia || []
+      multimedia: postData.multimedia || [],
+      comments: topLevelComments
     },
     comments: topLevelComments
   };
@@ -174,7 +183,7 @@ export async function searchPosts({
   limit?: number;
 }) {
   const offset = (page - 1) * limit;
-  const params: any[] = [];
+  const params: unknown[] = [];
   let paramIndex = 1;
 
   // Build the base query
@@ -275,8 +284,8 @@ export async function searchPosts({
   `;
 
   const [posts, totalResult] = await Promise.all([
-    query(sql, params),
-    query(countSql, params.slice(0, -2))
+    query<Post>(sql, params),
+    query<{ total: number }>(countSql, params.slice(0, -2))
   ]);
 
   return {
@@ -300,7 +309,7 @@ export async function searchComments({
   limit?: number;
 }) {
   const offset = (page - 1) * limit;
-  const params: any[] = [];
+  const params: unknown[] = [];
   let paramIndex = 1;
 
   // Build the base query
@@ -354,13 +363,13 @@ export async function searchComments({
   `;
 
   const [comments, totalResult] = await Promise.all([
-    query(sql, params),
-    query(countSql, params.slice(0, -2))
+    query<Comment>(sql, params),
+    query<{ total: number }>(countSql, params.slice(0, -2))
   ]);
 
   // Get thread comments for each comment
   for (const comment of comments) {
-    comment.thread_comments = await query(
+    comment.thread_comments = await query<Comment>(
       `SELECT c.*, u.username, u.is_verified, u.profile_pic_url
        FROM comments c
        JOIN users u ON c.user_id = u.id
@@ -406,6 +415,7 @@ export type Post = {
   caption: string;
   total_comments: number;
   multimedia: Multimedia[];
+  comments: Comment[];
 };
 
 export interface Comment {

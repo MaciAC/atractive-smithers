@@ -11,7 +11,7 @@ import {
   TimeScale,
 } from 'chart.js';
 import 'chartjs-adapter-date-fns';
-import { format, parseISO, isValid, subMonths, addMonths } from 'date-fns';
+import { format, parseISO, isValid, subMonths } from 'date-fns';
 import { useState, useMemo } from 'react';
 
 ChartJS.register(

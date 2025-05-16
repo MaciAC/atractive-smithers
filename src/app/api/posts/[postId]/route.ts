@@ -3,10 +3,18 @@ import { getPost } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  context: { params: Promise<{ postId: string }> }
 ) {
   try {
-    const post = await getPost(params.postId);
+    const { postId } = await context.params;
+    if (!postId) {
+      return NextResponse.json(
+        { error: 'Post ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const post = await getPost(postId);
 
     if (!post) {
       return NextResponse.json(
@@ -19,7 +27,7 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching post:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch post' },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

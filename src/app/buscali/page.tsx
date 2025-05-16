@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import MemeCard from "../../components/MemeCard";
 import MemeModal from "../../components/MemeModal";
-import { Post } from "@/lib/db";
+import { Post, Multimedia, Comment } from "@/lib/db";
 import { Meme } from "@/types/meme";
 
 const MEMES_PER_PAGE = 36;
@@ -22,7 +22,7 @@ export default function Searcher() {
   const [endDate, setEndDate] = useState<string>("");
   const [page, setPage] = useState(1);
   const [totalPosts, setTotalPosts] = useState(0);
-  const [selectedMemeData, setSelectedMemeData] = useState<any>(null);
+  const [selectedMemeData, setSelectedMemeData] = useState<Post | null>(null);
 
   const loadMemes = useCallback(async (newSearch = false) => {
     if (isLoading) return;
@@ -90,7 +90,13 @@ export default function Searcher() {
     try {
       const response = await fetch(`/api/posts/${postId}`);
       const data = await response.json();
-      setSelectedMemeData(data);
+
+      if (!data || !data.post) {
+        console.error('Invalid response format:', data);
+        return;
+      }
+
+      setSelectedMemeData(data.post);
     } catch (error) {
       console.error('Failed to fetch post data:', error);
     }
@@ -98,8 +104,13 @@ export default function Searcher() {
 
   // Reset and load initial memes when search, sort, or date filters change
   useEffect(() => {
-    loadMemes(true);
-  }, [searchQuery, sortBy, startDate, endDate]);
+    const timer = setTimeout(() => {
+      loadMemes(true);
+    }, 300); // Debounce the search
+
+    return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, sortBy, startDate, endDate]); // Remove loadMemes from dependencies
 
   // Load more memes when scrolling
   useEffect(() => {
@@ -116,7 +127,8 @@ export default function Searcher() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [loadMemes, isLoading, hasMore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, hasMore]); // Remove loadMemes from dependencies
 
   // Load post data when selected
   useEffect(() => {
@@ -211,7 +223,7 @@ export default function Searcher() {
           </div>
           {(searchQuery || startDate || endDate) && (
             <div className="text-gray-400 text-sm font-mono">
-              N'hi ha {totalPosts}
+              N&apos;hi ha {totalPosts}
               {searchQuery && ` buscant "${searchQuery}"`}
               {(startDate || endDate) && ` entre ${startDate || 'el principi dels temps'} i ${endDate || 'última update'}`}
             </div>
@@ -247,11 +259,11 @@ export default function Searcher() {
           <MemeModal
             memeId={selectedMemeId}
             memeData={{
-              date: selectedMemeData.post.date.toString(),
-              likes: selectedMemeData.post.likes,
-              caption: selectedMemeData.post.caption,
-              total_comments: selectedMemeData.post.total_comments,
-              multimedia: selectedMemeData.post.multimedia.map((m: any) => ({
+              date: selectedMemeData.date.toString(),
+              likes: selectedMemeData.likes,
+              caption: selectedMemeData.caption,
+              total_comments: selectedMemeData.total_comments,
+              multimedia: selectedMemeData.multimedia.map((m: Multimedia) => ({
                 id: m.id,
                 type: m.type,
                 url: m.url,
@@ -260,7 +272,7 @@ export default function Searcher() {
                 duration: m.duration,
                 display_order: m.display_order
               })),
-              comments: selectedMemeData.comments.map((comment: any) => ({
+              comments: selectedMemeData.comments.map((comment: Comment) => ({
                 text: comment.text,
                 likes: comment.likes,
                 owner: {
@@ -269,7 +281,7 @@ export default function Searcher() {
                   is_verified: comment.owner?.is_verified || false,
                   profile_pic_url: comment.owner?.profile_pic_url || ''
                 },
-                thread_comments: comment.thread_comments?.map((tc: any) => ({
+                thread_comments: comment.thread_comments?.map((tc: Comment) => ({
                   text: tc.text,
                   likes: tc.likes,
                   owner: {

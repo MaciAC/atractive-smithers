@@ -1,108 +1,85 @@
 "use client";
 
 import { Post, Comment, User } from "@/lib/db";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import MemeRender from "@/components/MemeRender";
 import { Meme } from "@/types/meme";
 
 export default function Home() {
-  const [randomMeme, setRandomMeme] = useState<{post: Post, comments: (Comment & {owner: User})[]} | null>(null);
   const [randomMemeId, setRandomMemeId] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [allMemeIds, setAllMemeIds] = useState<string[]>([]);
+  const [memeData, setMemeData] = useState<Meme | null>(null);
 
-  // Get all meme IDs when the component mounts
-  useEffect(() => {
-    const fetchMemeIds = async () => {
-      try {
-        const response = await fetch('/api/posts');
-        const data = await response.json();
-        if (data.posts && data.posts.length > 0) {
-          setAllMemeIds(data.posts.map((post: Post) => post.id));
-          // Load initial random meme
-          getRandomMeme(true, data.posts.map((post: Post) => post.id));
-        }
-      } catch (error) {
-        console.error('Failed to fetch meme IDs:', error);
-      }
-    };
-
-    fetchMemeIds();
+  const fetchMemeIds = useCallback(async () => {
+    try {
+      const response = await fetch('/api/search?limit=1000');
+      const data = await response.json();
+      setAllMemeIds(data.posts.map((post: Post) => post.id));
+    } catch (error) {
+      console.error('Error fetching meme IDs:', error);
+    }
   }, []);
 
-  const getRandomMeme = async (isInitial = false, ids = allMemeIds) => {
-    if (isLoading || ids.length === 0) return;
+  const getRandomMeme = useCallback(async (ids = allMemeIds) => {
+    if (!ids.length) return;
+    const randomIndex = Math.floor(Math.random() * ids.length);
+    const randomId = ids[randomIndex];
     setIsLoading(true);
+    try {
+      const response = await fetch(`/api/posts/${randomId}`);
+      const data = await response.json();
 
-    // First, hide the current meme if not initial load
-    if (!isInitial) {
-      setIsVisible(false);
-    }
-
-    const loadMeme = async () => {
-      // Select a new meme
-      let randomId;
-
-      // Avoid selecting the same meme
-      do {
-        randomId = ids[Math.floor(Math.random() * ids.length)];
-      } while (randomId === randomMemeId && ids.length > 1);
-
-      try {
-        const response = await fetch(`/api/posts/${randomId}`);
-        const data = await response.json();
-
-        // Update the meme state
-        setRandomMeme(data);
-        setRandomMemeId(randomId);
-
-        // Show the new meme
-        setIsVisible(true);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Failed to fetch meme:', error);
-        setIsLoading(false);
+      if (!data || !data.post) {
+        console.error('Invalid response format:', data);
+        return;
       }
-    };
 
-    if (isInitial) {
-      loadMeme();
-    } else {
-      // Wait for fade-out animation to complete
-      setTimeout(loadMeme, 500);
-    }
-  };
-
-  // Convert database format to Meme format
-  const convertToMeme = (post: Post, comments: (Comment & {owner: User})[]): Meme => {
-    return {
-      date: post.date.toString(),
-      likes: post.likes,
-      caption: post.caption,
-      total_comments: post.total_comments,
-      comments: comments.map(comment => ({
-        text: comment.text,
-        likes: comment.likes,
-        owner: {
-          id: comment.owner?.id || '',
-          username: comment.owner?.username || '',
-          is_verified: comment.owner?.is_verified || false,
-          profile_pic_url: comment.owner?.profile_pic_url || ''
-        },
-        thread_comments: comment.thread_comments?.map(tc => ({
-          text: tc.text,
-          likes: tc.likes,
+      setMemeData({
+        date: data.post.date.toString(),
+        likes: data.post.likes,
+        caption: data.post.caption,
+        total_comments: data.post.total_comments,
+        multimedia: data.post.multimedia || [],
+        comments: (data.comments || []).map((comment: Comment & { owner: User }) => ({
+          text: comment.text,
+          likes: comment.likes,
           owner: {
-            id: tc.owner?.id || '',
-            username: tc.owner?.username || '',
-            is_verified: tc.owner?.is_verified || false,
-            profile_pic_url: tc.owner?.profile_pic_url || ''
-          }
-        })) || []
-      }))
-    };
-  };
+            id: comment.owner?.id || '',
+            username: comment.owner?.username || '',
+            is_verified: comment.owner?.is_verified || false,
+            profile_pic_url: comment.owner?.profile_pic_url || ''
+          },
+          thread_comments: (comment.thread_comments || []).map((tc: Comment) => ({
+            text: tc.text,
+            likes: tc.likes,
+            owner: {
+              id: tc.owner?.id || '',
+              username: tc.owner?.username || '',
+              is_verified: tc.owner?.is_verified || false,
+              profile_pic_url: tc.owner?.profile_pic_url || ''
+            }
+          }))
+        }))
+      });
+      setRandomMemeId(randomId);
+      setIsVisible(true);
+    } catch (error) {
+      console.error('Error fetching random meme:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [allMemeIds]);
+
+  useEffect(() => {
+    fetchMemeIds();
+  }, [fetchMemeIds]);
+
+  useEffect(() => {
+    getRandomMeme();
+  }, [getRandomMeme]);
+
 
   return (
     <main className="pb-4 flex flex-col items-center justify-center">
@@ -121,11 +98,11 @@ export default function Home() {
               className="transition-opacity duration-500 ease-in-out w-full flex justify-center backdrop-blur-2xl"
               style={{ opacity: isVisible ? 1 : 0 }}
             >
-              {randomMeme && randomMemeId && randomMeme.post && (
+              {memeData && randomMemeId && (
                 <MemeRender
-                  key={randomMemeId} // Force complete re-render on ID change
+                  key={randomMemeId}
                   memeId={randomMemeId}
-                  memeData={convertToMeme(randomMeme.post, randomMeme.comments)}
+                  memeData={memeData}
                   onClose={() => {}}
                   variant="inline"
                 />
