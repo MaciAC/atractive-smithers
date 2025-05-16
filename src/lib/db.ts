@@ -7,9 +7,9 @@ const getPool = (): Pool => {
   if (!globalPool.pool) {
     globalPool.pool = new Pool({
       connectionString: process.env.POSTGRES_URL,
-      ssl: process.env.NODE_ENV === 'production'
-        ? { rejectUnauthorized: false }
-        : { rejectUnauthorized: false }, // Also allow self-signed certificates in development
+      ssl: {
+        rejectUnauthorized: false
+      }
     });
   }
   return globalPool.pool;
