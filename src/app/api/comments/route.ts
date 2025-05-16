@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { searchComments, query, getUser } from '@/lib/db';
-import { Comment } from '@/lib/db';
+import { searchComments } from '@/lib/db';
 
 export async function GET(request: Request) {
   try {

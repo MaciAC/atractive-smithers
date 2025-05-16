@@ -7,8 +7,6 @@ import { Meme } from "@/types/meme";
 
 const COMMENTS_PER_PAGE = 20;
 
-type SortOption = 'likes' | 'date' | 'date_reverse';
-
 interface CommentWithContext extends Comment {
   post_id: string;
   caption: string | null;
@@ -85,6 +83,7 @@ export default function Comments() {
   // Initial load
   useEffect(() => {
     fetchComments(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, sortBy]);
 
   // Handle infinite scroll
@@ -160,7 +159,7 @@ export default function Comments() {
           )}
         </div>
 
-        <div className="max-w-6xl mx-auto space-y-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="max-w-6xl mx-auto space-y-6 gap-4">
           {comments.map((comment, index) => (
             <div
               key={`${comment.post_id}-${comment.id}-${index}`}
