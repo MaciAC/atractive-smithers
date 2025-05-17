@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import MemeModal from "../../components/MemeModal";
-import { Meme } from "@/types/meme";
+import { debounce } from "lodash";
 
-const COMMENTS_PER_PAGE = 20;
+const COMMENTS_PER_PAGE = 50;
 
 type SortOption = 'likes' | 'newest' | 'oldest' | 'shortest' | 'longest';
 
@@ -36,27 +36,6 @@ type CommentWithContext = {
   caption: string | null;
 };
 
-type PostData = {
-  post: {
-    id: string;
-    date: Date;
-    likes: number;
-    caption: string | null;
-    total_comments: number;
-    multimedia: Array<{
-      id: number;
-      type: 'image' | 'video';
-      url: string;
-      width: number | null;
-      height: number | null;
-      duration: number | null;
-      display_order: number;
-    }>;
-    comments: CommentWithContext[];
-  };
-  comments: CommentWithContext[];
-};
-
 export default function Comments() {
   const [comments, setComments] = useState<CommentWithContext[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,16 +43,19 @@ export default function Comments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMemeId, setSelectedMemeId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [selectedMemeData, setSelectedMemeData] = useState<PostData | null>(null);
   const [totalComments, setTotalComments] = useState(0);
   const [sortBy, setSortBy] = useState<SortOption>('likes');
   const [verifiedFilter, setVerifiedFilter] = useState<'any' | 'verified' | 'not_verified'>('any');
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  // Add a ref to track if we're currently fetching
+  const isFetchingRef = useRef(false);
+
   // Fetch comments when search or sort changes
   const fetchComments = useCallback(async (newSearch = false) => {
-    if (isLoading) return;
+    if (isLoading || isFetchingRef.current) return;
 
+    isFetchingRef.current = true;
     setIsLoading(true);
     const currentPage = newSearch ? 1 : page;
 
@@ -110,14 +92,19 @@ export default function Comments() {
       console.error('Failed to fetch comments:', error);
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
   }, [isLoading, page, searchQuery, sortBy, verifiedFilter]);
 
-  const loadMoreComments = useCallback(() => {
-    if (!isLoading && hasMore) {
-      fetchComments();
-    }
-  }, [fetchComments, isLoading, hasMore]);
+  // Add debounced scroll handler
+  const debouncedLoadMore = useCallback(
+    debounce(() => {
+      if (!isLoading && hasMore) {
+        fetchComments();
+      }
+    }, 300),
+    [fetchComments, isLoading, hasMore]
+  );
 
   const handleCloseModal = useCallback(() => {
     setIsModalVisible(false);
@@ -133,20 +120,23 @@ export default function Comments() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, sortBy, verifiedFilter]);
 
-  // Handle infinite scroll
+  // Handle infinite scroll with debounced handler
   useEffect(() => {
     const handleScroll = () => {
       if (
         window.innerHeight + document.documentElement.scrollTop >=
         document.documentElement.offsetHeight - 1000
       ) {
-        loadMoreComments();
+        debouncedLoadMore();
       }
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [loadMoreComments]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      debouncedLoadMore.cancel(); // Cancel any pending debounced calls
+    };
+  }, [debouncedLoadMore]);
 
   // Load post data when selected
   useEffect(() => {

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import MemeCard from "../../components/MemeCard";
 import MemeModal from "../../components/MemeModal";
-import { Post, Multimedia, Comment } from "@/lib/db";
+import { Post, Multimedia } from "@/lib/db";
 import { Meme } from "@/types/meme";
 
 const MEMES_PER_PAGE = 36;
@@ -22,9 +22,7 @@ export default function Searcher() {
   const [endDate, setEndDate] = useState<string>("");
   const [page, setPage] = useState(1);
   const [totalPosts, setTotalPosts] = useState(0);
-  const [selectedMemeData, setSelectedMemeData] = useState<Post | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isLoadingModal, setIsLoadingModal] = useState(false);
 
   const loadMemes = useCallback(async (newSearch = false) => {
     if (isLoading) return;
@@ -86,27 +84,6 @@ export default function Searcher() {
       setIsLoading(false);
     }
   }, [isLoading, page, searchQuery, sortBy, startDate, endDate]);
-
-  const loadPostData = useCallback(async (postId: string) => {
-    try {
-      setIsLoadingModal(true);
-      // Make a single API call that includes both post data and meme files
-      const response = await fetch(`/api/posts/${postId}?includeFiles=true`);
-      const data = await response.json();
-
-      if (!data || !data.post) {
-        console.error('Invalid response format:', data);
-        return;
-      }
-
-      // Ensure we're using the post data from the correct structure
-      setSelectedMemeData(data.post);
-    } catch (error) {
-      console.error('Failed to fetch post data:', error);
-    } finally {
-      setIsLoadingModal(false);
-    }
-  }, []);
 
   // Reset and load initial memes when search, sort, or date filters change
   useEffect(() => {

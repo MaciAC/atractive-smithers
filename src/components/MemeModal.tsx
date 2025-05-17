@@ -4,6 +4,7 @@ import { Meme } from "../types/meme";
 import MemeRender from "./MemeRender";
 import { HeartIcon, ChatBubbleLeftIcon, CalendarIcon } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
+import { Multimedia, Comment } from "@/lib/db";
 
 interface MemeModalProps {
   memeId: string;
@@ -33,7 +34,7 @@ export default function MemeModal({ memeId, memeData: initialMemeData, onClose, 
           console.log('Multimedia data:', data.post.multimedia);
 
           // Ensure we have valid multimedia data
-          const multimedia = data.post.multimedia?.map((m: any) => {
+          const multimedia = data.post.multimedia?.map((m: Multimedia) => {
             console.log('Processing media item:', m);
             return {
               id: m.id,
@@ -54,7 +55,7 @@ export default function MemeModal({ memeId, memeData: initialMemeData, onClose, 
             caption: data.post.caption || '',
             total_comments: data.post.total_comments || 0,
             multimedia,
-            comments: data.post.comments?.map((comment: any) => ({
+            comments: data.post.comments?.map((comment: Comment) => ({
               text: comment.text,
               likes: comment.likes,
               owner: {
@@ -63,7 +64,7 @@ export default function MemeModal({ memeId, memeData: initialMemeData, onClose, 
                 is_verified: comment.user?.is_verified || false,
                 profile_pic_url: comment.user?.profile_pic_url || ''
               },
-              thread_comments: comment.thread_comments?.map((tc: any) => ({
+              thread_comments: comment.thread_comments?.map((tc: Comment) => ({
                 text: tc.text,
                 likes: tc.likes,
                 owner: {
