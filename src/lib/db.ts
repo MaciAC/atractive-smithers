@@ -117,6 +117,11 @@ export async function getPostComments(postId: string) {
 
 export async function getAllPosts() {
   return await prisma.post.findMany({
+    where: {
+      multimedia: {
+        some: {} // Only posts that have at least one multimedia item
+      }
+    },
     orderBy: { date: 'desc' }
   });
 }
@@ -138,6 +143,7 @@ export async function searchPosts({
 }) {
   const where = {
     AND: [
+      { multimedia: { some: {} } }, // Only posts that have at least one multimedia item
       searchQuery ? {
         OR: [
           { caption: { contains: searchQuery, mode: 'insensitive' as const } },

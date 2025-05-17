@@ -78,4 +78,27 @@
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
   }
+
+  .discreet-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(75, 85, 99, 0.3) transparent;
+  }
+
+  .discreet-scrollbar::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .discreet-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .discreet-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(75, 85, 99, 0.3);
+    border-radius: 20px;
+    border: 2px solid transparent;
+  }
+
+  .discreet-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(75, 85, 99, 0.5);
+  }
 }

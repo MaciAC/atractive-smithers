@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import MemeModal from "../../components/MemeModal";
-import { Meme } from "@/types/meme";
+import { debounce } from "lodash";
 
-const COMMENTS_PER_PAGE = 20;
+const COMMENTS_PER_PAGE = 50;
 
 type SortOption = 'likes' | 'newest' | 'oldest' | 'shortest' | 'longest';
 
@@ -36,27 +36,6 @@ type CommentWithContext = {
   caption: string | null;
 };
 
-type PostData = {
-  post: {
-    id: string;
-    date: Date;
-    likes: number;
-    caption: string | null;
-    total_comments: number;
-    multimedia: Array<{
-      id: number;
-      type: 'image' | 'video';
-      url: string;
-      width: number | null;
-      height: number | null;
-      duration: number | null;
-      display_order: number;
-    }>;
-    comments: CommentWithContext[];
-  };
-  comments: CommentWithContext[];
-};
-
 export default function Comments() {
   const [comments, setComments] = useState<CommentWithContext[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,15 +43,19 @@ export default function Comments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMemeId, setSelectedMemeId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [selectedMemeData, setSelectedMemeData] = useState<PostData | null>(null);
   const [totalComments, setTotalComments] = useState(0);
   const [sortBy, setSortBy] = useState<SortOption>('likes');
   const [verifiedFilter, setVerifiedFilter] = useState<'any' | 'verified' | 'not_verified'>('any');
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  // Add a ref to track if we're currently fetching
+  const isFetchingRef = useRef(false);
 
   // Fetch comments when search or sort changes
   const fetchComments = useCallback(async (newSearch = false) => {
-    if (isLoading) return;
+    if (isLoading || isFetchingRef.current) return;
 
+    isFetchingRef.current = true;
     setIsLoading(true);
     const currentPage = newSearch ? 1 : page;
 
@@ -109,24 +92,26 @@ export default function Comments() {
       console.error('Failed to fetch comments:', error);
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
   }, [isLoading, page, searchQuery, sortBy, verifiedFilter]);
 
-  const loadMoreComments = useCallback(() => {
-    if (!isLoading && hasMore) {
-      fetchComments();
-    }
-  }, [fetchComments, isLoading, hasMore]);
+  // Add debounced scroll handler
+  const debouncedLoadMore = useCallback(
+    debounce(() => {
+      if (!isLoading && hasMore) {
+        fetchComments();
+      }
+    }, 300),
+    [fetchComments, isLoading, hasMore]
+  );
 
-  // Load post data when a post is selected
-  const loadPostData = useCallback(async (postId: string) => {
-    try {
-      const response = await fetch(`/api/posts/${postId}`);
-      const data = await response.json();
-      setSelectedMemeData(data);
-    } catch (error) {
-      console.error('Failed to fetch post data:', error);
-    }
+  const handleCloseModal = useCallback(() => {
+    setIsModalVisible(false);
+    // Wait for fade out animation before clearing data
+    setTimeout(() => {
+      setSelectedMemeId(null);
+    }, 300);
   }, []);
 
   // Initial load
@@ -135,58 +120,30 @@ export default function Comments() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, sortBy, verifiedFilter]);
 
-  // Handle infinite scroll
+  // Handle infinite scroll with debounced handler
   useEffect(() => {
     const handleScroll = () => {
       if (
         window.innerHeight + document.documentElement.scrollTop >=
         document.documentElement.offsetHeight - 1000
       ) {
-        loadMoreComments();
+        debouncedLoadMore();
       }
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [loadMoreComments]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      debouncedLoadMore.cancel(); // Cancel any pending debounced calls
+    };
+  }, [debouncedLoadMore]);
 
   // Load post data when selected
   useEffect(() => {
     if (selectedMemeId) {
-      loadPostData(selectedMemeId);
+      setIsModalVisible(true);
     }
-  }, [selectedMemeId, loadPostData]);
-
-  // Convert database format to Meme format
-  const convertToMeme = (post: PostData['post'], comments: CommentWithContext[]): Meme => {
-    return {
-      date: post.date.toString(),
-      likes: post.likes,
-      caption: post.caption || '',
-      total_comments: post.total_comments,
-      multimedia: post.multimedia,
-      comments: comments.map(comment => ({
-        text: comment.text,
-        likes: comment.likes,
-        owner: {
-          id: comment.user.id,
-          username: comment.user.username,
-          is_verified: comment.user.is_verified,
-          profile_pic_url: comment.user.profile_pic_url || ''
-        },
-        thread_comments: comment.thread_comments.map(threadComment => ({
-          text: threadComment.text,
-          likes: threadComment.likes,
-          owner: {
-            id: threadComment.user.id,
-            username: threadComment.user.username,
-            is_verified: threadComment.user.is_verified,
-            profile_pic_url: threadComment.user.profile_pic_url || ''
-          }
-        }))
-      }))
-    };
-  };
+  }, [selectedMemeId]);
 
   return (
     <main className="min-h-screen py-8">
@@ -269,11 +226,11 @@ export default function Comments() {
           </div>
         )}
 
-        {selectedMemeId && selectedMemeData && (
+        {selectedMemeId && (
           <MemeModal
             memeId={selectedMemeId}
-            memeData={convertToMeme(selectedMemeData.post, selectedMemeData.comments)}
-            onClose={() => setSelectedMemeId(null)}
+            onClose={handleCloseModal}
+            isVisible={isModalVisible}
           />
         )}
       </div>

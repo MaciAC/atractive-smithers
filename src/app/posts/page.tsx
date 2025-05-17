@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import MemeCard from "../../components/MemeCard";
 import MemeModal from "../../components/MemeModal";
-import { Post, Multimedia, Comment } from "@/lib/db";
+import { Post, Multimedia } from "@/lib/db";
 import { Meme } from "@/types/meme";
 
 const MEMES_PER_PAGE = 36;
@@ -22,7 +22,7 @@ export default function Searcher() {
   const [endDate, setEndDate] = useState<string>("");
   const [page, setPage] = useState(1);
   const [totalPosts, setTotalPosts] = useState(0);
-  const [selectedMemeData, setSelectedMemeData] = useState<Post | null>(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const loadMemes = useCallback(async (newSearch = false) => {
     if (isLoading) return;
@@ -85,23 +85,6 @@ export default function Searcher() {
     }
   }, [isLoading, page, searchQuery, sortBy, startDate, endDate]);
 
-  // Load post data when a post is selected
-  const loadPostData = useCallback(async (postId: string) => {
-    try {
-      const response = await fetch(`/api/posts/${postId}`);
-      const data = await response.json();
-
-      if (!data || !data.post) {
-        console.error('Invalid response format:', data);
-        return;
-      }
-
-      setSelectedMemeData(data.post);
-    } catch (error) {
-      console.error('Failed to fetch post data:', error);
-    }
-  }, []);
-
   // Reset and load initial memes when search, sort, or date filters change
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -133,9 +116,9 @@ export default function Searcher() {
   // Load post data when selected
   useEffect(() => {
     if (selectedMemeId) {
-      loadPostData(selectedMemeId);
+      setIsModalVisible(true);
     }
-  }, [selectedMemeId, loadPostData]);
+  }, [selectedMemeId]);
 
   // Intersection Observer to detect when memes become visible
   useEffect(() => {
@@ -181,6 +164,14 @@ export default function Searcher() {
       })) || []
     };
   };
+
+  const handleCloseModal = useCallback(() => {
+    setIsModalVisible(false);
+    // Wait for fade out animation before clearing data
+    setTimeout(() => {
+      setSelectedMemeId(null);
+    }, 300);
+  }, []);
 
   return (
     <main className="min-h-screen py-8">
@@ -255,45 +246,11 @@ export default function Searcher() {
           </div>
         )}
 
-        {selectedMemeId && selectedMemeData && (
+        {selectedMemeId && (
           <MemeModal
             memeId={selectedMemeId}
-            memeData={{
-              date: selectedMemeData.date.toString(),
-              likes: selectedMemeData.likes,
-              caption: selectedMemeData.caption || '',
-              total_comments: selectedMemeData.total_comments,
-              multimedia: selectedMemeData.multimedia?.map((m: Multimedia) => ({
-                id: m.id,
-                type: m.type,
-                url: m.url,
-                width: m.width,
-                height: m.height,
-                duration: m.duration,
-                display_order: m.display_order
-              })) || [],
-              comments: selectedMemeData.comments?.map((comment: Comment) => ({
-                text: comment.text,
-                likes: comment.likes,
-                owner: {
-                  id: comment.user?.id || '',
-                  username: comment.user?.username || '',
-                  is_verified: comment.user?.is_verified || false,
-                  profile_pic_url: comment.user?.profile_pic_url || ''
-                },
-                thread_comments: comment.thread_comments?.map((tc: Comment) => ({
-                  text: tc.text,
-                  likes: tc.likes,
-                  owner: {
-                    id: tc.user?.id || '',
-                    username: tc.user?.username || '',
-                    is_verified: tc.user?.is_verified || false,
-                    profile_pic_url: tc.user?.profile_pic_url || ''
-                  }
-                })) || []
-              })) || []
-            }}
-            onClose={() => setSelectedMemeId(null)}
+            onClose={handleCloseModal}
+            isVisible={isModalVisible}
           />
         )}
       </div>
