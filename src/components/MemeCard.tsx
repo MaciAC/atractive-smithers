@@ -1,7 +1,6 @@
 "use client";
 
 import { Meme } from "../types/meme";
-import Image from "next/image";
 import { useState, useEffect } from "react";
 
 interface MemeCardProps {
@@ -52,13 +51,11 @@ export default function MemeCard({ memeId, memeData, onSelect, shouldLoadImage }
         ) : (
           <div className="relative w-full h-full">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <Image
+              <img
                 src={memeFiles[0]?.url || ''}
                 alt={`Meme ${memeId}`}
-                width={300}
-                height={300}
                 className="max-w-[280px] max-h-[280px] object-contain"
-                priority={false}
+                loading="lazy"
               />
               {memeFiles.some(file => file.key.endsWith('.mp4')) && (
                 <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded text-white text-xs font-mono flex items-center">
