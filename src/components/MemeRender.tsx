@@ -227,12 +227,11 @@ export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
                                     className="object-contain max-w-full max-h-full"
                                 />
                             ) : (
-                                <Image
+                                <img
                                     src={fileUrl || ''}
                                     alt={`Meme ${memeId}`}
-                                    width={800}
-                                    height={800}
                                     className="object-contain max-w-full max-h-full"
+                                    loading="lazy"
                                 />
                             );
                         })()}
