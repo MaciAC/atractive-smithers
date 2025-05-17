@@ -91,7 +91,7 @@ export default function Home() {
               className="bg-white p-1 text-emerald-300 text-2xl font-bold rounded hover:bg-emerald-300 hover:text-emerald-900"
               disabled={isLoading}
             >
-              {isLoading ? "Espera..." : "DALEEEEE"}
+              {isLoading ? "Espera..." : "DAAAAALE"}
             </button>
 
             <div

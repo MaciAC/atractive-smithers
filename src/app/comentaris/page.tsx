@@ -6,6 +6,8 @@ import { Meme } from "@/types/meme";
 
 const COMMENTS_PER_PAGE = 20;
 
+type SortOption = 'likes' | 'newest' | 'oldest' | 'shortest' | 'longest';
+
 type CommentWithContext = {
   id: number;
   post_id: string;
@@ -64,7 +66,9 @@ export default function Comments() {
   const [page, setPage] = useState(1);
   const [selectedMemeData, setSelectedMemeData] = useState<PostData | null>(null);
   const [totalComments, setTotalComments] = useState(0);
-  const sortBy = 'likes';
+  const [sortBy, setSortBy] = useState<SortOption>('likes');
+  const [verifiedFilter, setVerifiedFilter] = useState<'any' | 'verified' | 'not_verified'>('any');
+
   // Fetch comments when search or sort changes
   const fetchComments = useCallback(async (newSearch = false) => {
     if (isLoading) return;
@@ -80,6 +84,9 @@ export default function Comments() {
       url.searchParams.append('sort', sortBy);
       url.searchParams.append('page', currentPage.toString());
       url.searchParams.append('limit', COMMENTS_PER_PAGE.toString());
+      if (verifiedFilter !== 'any') {
+        url.searchParams.append('verified', verifiedFilter);
+      }
 
       const response = await fetch(url);
       const data = await response.json();
@@ -103,7 +110,7 @@ export default function Comments() {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, page, searchQuery, sortBy]);
+  }, [isLoading, page, searchQuery, sortBy, verifiedFilter]);
 
   const loadMoreComments = useCallback(() => {
     if (!isLoading && hasMore) {
@@ -126,7 +133,7 @@ export default function Comments() {
   useEffect(() => {
     fetchComments(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, sortBy]);
+  }, [searchQuery, sortBy, verifiedFilter]);
 
   // Handle infinite scroll
   useEffect(() => {
@@ -185,14 +192,36 @@ export default function Comments() {
     <main className="min-h-screen py-8">
       <div className="container">
         <div className="max-w-2xl mx-auto mb-8 space-y-4">
-          <div className="flex gap-4">
-            <input
-              type="text"
-              placeholder="Busca..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-gray-600 text-white font-mono"
-            />
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex gap-4">
+              <input
+                type="text"
+                placeholder="Busca..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-gray-600 text-white font-mono"
+              />
+            </div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-gray-600 text-white font-mono"
+            >
+              <option value="likes">Més likes primer</option>
+              <option value="newest">Més nous primer</option>
+              <option value="oldest">Més antics primer</option>
+              <option value="shortest">Més curts primer</option>
+              <option value="longest">Més llargs primer</option>
+            </select>
+            <select
+              value={verifiedFilter}
+              onChange={(e) => setVerifiedFilter(e.target.value as 'any' | 'verified' | 'not_verified')}
+              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-gray-600 text-white font-mono"
+            >
+              <option value="any">Tots els perfils</option>
+              <option value="verified">Només verificats</option>
+              <option value="not_verified">Només no verificats</option>
+            </select>
           </div>
           {searchQuery && (
             <div className="text-gray-400 text-sm font-mono">

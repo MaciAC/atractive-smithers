@@ -35,12 +35,12 @@ export default function Searcher() {
       if (searchQuery) {
         url.searchParams.append('q', searchQuery);
       }
-      url.searchParams.append('sort', sortBy);
+      url.searchParams.append('sortBy', sortBy);
       if (startDate) {
-        url.searchParams.append('start', startDate);
+        url.searchParams.append('startDate', startDate);
       }
       if (endDate) {
-        url.searchParams.append('end', endDate);
+        url.searchParams.append('endDate', endDate);
       }
       url.searchParams.append('page', currentPage.toString());
       url.searchParams.append('limit', MEMES_PER_PAGE.toString());

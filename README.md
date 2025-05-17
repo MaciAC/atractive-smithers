@@ -71,4 +71,3 @@ This project is open source and available under the [MIT license](LICENSE).
 - timeline per mostrar arcs
 - ⁠scrap tots els coments
 - OCR a tot els memes
-- ⁠randomizer page
