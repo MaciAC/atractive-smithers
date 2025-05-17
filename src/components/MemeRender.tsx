@@ -1,6 +1,5 @@
 import { Meme } from "@/types/meme";
 import { HeartIcon, ChatBubbleLeftIcon, CalendarIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { parseISO, isValid, format } from "date-fns";
 

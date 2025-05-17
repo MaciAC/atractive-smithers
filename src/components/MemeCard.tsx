@@ -1,7 +1,6 @@
 "use client";
 
 import { Meme } from "../types/meme";
-import Image from "next/image";
 import { useState, useEffect } from "react";
 
 interface MemeCardProps {
