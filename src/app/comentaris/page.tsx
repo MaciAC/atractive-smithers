@@ -68,6 +68,7 @@ export default function Comments() {
   const [totalComments, setTotalComments] = useState(0);
   const [sortBy, setSortBy] = useState<SortOption>('likes');
   const [verifiedFilter, setVerifiedFilter] = useState<'any' | 'verified' | 'not_verified'>('any');
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   // Fetch comments when search or sort changes
   const fetchComments = useCallback(async (newSearch = false) => {
@@ -118,15 +119,12 @@ export default function Comments() {
     }
   }, [fetchComments, isLoading, hasMore]);
 
-  // Load post data when a post is selected
-  const loadPostData = useCallback(async (postId: string) => {
-    try {
-      const response = await fetch(`/api/posts/${postId}`);
-      const data = await response.json();
-      setSelectedMemeData(data);
-    } catch (error) {
-      console.error('Failed to fetch post data:', error);
-    }
+  const handleCloseModal = useCallback(() => {
+    setIsModalVisible(false);
+    // Wait for fade out animation before clearing data
+    setTimeout(() => {
+      setSelectedMemeId(null);
+    }, 300);
   }, []);
 
   // Initial load
@@ -153,40 +151,9 @@ export default function Comments() {
   // Load post data when selected
   useEffect(() => {
     if (selectedMemeId) {
-      loadPostData(selectedMemeId);
+      setIsModalVisible(true);
     }
-  }, [selectedMemeId, loadPostData]);
-
-  // Convert database format to Meme format
-  const convertToMeme = (post: PostData['post'], comments: CommentWithContext[]): Meme => {
-    return {
-      date: post.date.toString(),
-      likes: post.likes,
-      caption: post.caption || '',
-      total_comments: post.total_comments,
-      multimedia: post.multimedia,
-      comments: comments.map(comment => ({
-        text: comment.text,
-        likes: comment.likes,
-        owner: {
-          id: comment.user.id,
-          username: comment.user.username,
-          is_verified: comment.user.is_verified,
-          profile_pic_url: comment.user.profile_pic_url || ''
-        },
-        thread_comments: comment.thread_comments.map(threadComment => ({
-          text: threadComment.text,
-          likes: threadComment.likes,
-          owner: {
-            id: threadComment.user.id,
-            username: threadComment.user.username,
-            is_verified: threadComment.user.is_verified,
-            profile_pic_url: threadComment.user.profile_pic_url || ''
-          }
-        }))
-      }))
-    };
-  };
+  }, [selectedMemeId]);
 
   return (
     <main className="min-h-screen py-8">
@@ -269,11 +236,11 @@ export default function Comments() {
           </div>
         )}
 
-        {selectedMemeId && selectedMemeData && (
+        {selectedMemeId && (
           <MemeModal
             memeId={selectedMemeId}
-            memeData={convertToMeme(selectedMemeData.post, selectedMemeData.comments)}
-            onClose={() => setSelectedMemeId(null)}
+            onClose={handleCloseModal}
+            isVisible={isModalVisible}
           />
         )}
       </div>

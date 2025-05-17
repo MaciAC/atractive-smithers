@@ -1,18 +1,15 @@
+"use client";
+
 import { Meme } from "@/types/meme";
 import { HeartIcon, ChatBubbleLeftIcon, CalendarIcon } from "@heroicons/react/24/outline";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { parseISO, isValid, format } from "date-fns";
 
-interface MemeFile {
-    key: string;
-    url: string;
-  }
-
 interface MemeRenderProps {
-    memeId: string;
-    memeData: Meme;
-    onClose: () => void;
-    variant?: 'modal' | 'inline';
+  memeId: string;
+  memeData: Meme;
+  onClose: () => void;
+  variant?: 'modal' | 'inline';
 }
 
 // Completely revise the CommentSection component to handle its own scrolling
@@ -115,46 +112,22 @@ function CommentSection({ memeData, isModal = false }: { memeData: Meme; isModal
 }
 
 export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
-    const [memeFiles, setMemeFiles] = useState<MemeFile[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-    useEffect(() => {
-      const fetchMemeFiles = async () => {
-        try {
-          const response = await fetch(`/api/memes/${memeId}`);
-          if (!response.ok) throw new Error('Failed to fetch meme files');
-          const data = await response.json();
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % memeData.multimedia.length);
+  };
 
-          // Filter files if exactly 2 files with one MP4
-          if (data.files.length === 2 && data.files.some((file: MemeFile) => file.key.endsWith('.mp4'))) {
-            const mp4File = data.files.find((file: MemeFile) => file.key.endsWith('.mp4'));
-            setMemeFiles([mp4File]);
-          } else {
-            setMemeFiles(data.files);
-          }
-        } catch (error) {
-          console.error('Error fetching meme files:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      };
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + memeData.multimedia.length) % memeData.multimedia.length);
+  };
 
-      fetchMemeFiles();
-    }, [memeId]);
+  // Parse the date - handle both old and new formats
+  let parsedDate;
+  let formattedDate = '';
 
-    const nextImage = () => {
-      setCurrentImageIndex((prev) => (prev + 1) % memeFiles.length);
-    };
-
-    const prevImage = () => {
-      setCurrentImageIndex((prev) => (prev - 1 + memeFiles.length) % memeFiles.length);
-    };
-
-    // Parse the date - handle both old and new formats
-    let parsedDate;
-    const dateString = memeData.date.toString();
-
+  try {
+    const dateString = memeData.date?.toString() || new Date().toISOString();
     // Try to parse directly first (for new format from PostgreSQL)
     parsedDate = parseISO(dateString);
 
@@ -176,92 +149,114 @@ export default function MemeRender({ memeId, memeData }: MemeRenderProps) {
     }
 
     // Format the date or fall back to a simple display
-    const formattedDate = isValid(parsedDate)
+    formattedDate = isValid(parsedDate)
       ? format(parsedDate, 'MMM d, yyyy')
       : dateString.split('_')[0] || dateString.split('T')[0] || dateString;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    formattedDate = 'Unknown date';
+  }
 
-    return (
-        <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700 bg-gray-900/50">
-        <div className="flex items-center justify-between p-3 border-b border-gray-800/70">
-          <div className="flex items-center space-x-2 overflow-x-auto scrollbar-none">
-            <span className="text-gray-300 font-mono text-sm whitespace-nowrap">#{memeId}</span>
-            <div className="flex items-center space-x-3 text-gray-400">
-                <div className="flex items-center space-x-1 whitespace-nowrap">
-                    <HeartIcon className="w-3.5 h-3.5" />
-                    <span className="text-sm">{memeData.likes}</span>
-                </div>
-                <div className="flex items-center space-x-1 whitespace-nowrap">
-                    <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
-                    <span className="text-sm">{memeData.total_comments}</span>
-                </div>
-                <div className="flex items-center space-x-1 whitespace-nowrap">
-                    <CalendarIcon className="w-3.5 h-3.5" />
-                    <span className="text-sm">{formattedDate}</span>
-                </div>
+  // Function to get the correct media URL
+  const getMediaUrl = (url: string) => {
+    try {
+      console.log('Processing URL:', url);
+      // If the URL is already a presigned URL, use it as is
+      if (url.includes('X-Amz-Signature')) {
+        console.log('Using presigned URL:', url);
+        return url;
+      }
+
+      // If it's a direct object URL, use it as is
+      if (url.startsWith('https://') && !url.includes('?')) {
+        console.log('Using direct URL:', url);
+        return url;
+      }
+
+      // If we can't determine the URL type, return as is
+      console.log('Using original URL:', url);
+      return url;
+    } catch (error) {
+      console.error('Error parsing URL:', error);
+      return url;
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700 bg-gray-900/50">
+      <div className="flex items-center justify-between p-3 border-b border-gray-800/70">
+        <div className="flex items-center space-x-2 overflow-x-auto scrollbar-none">
+          <span className="text-gray-300 font-mono text-sm whitespace-nowrap">#{memeId}</span>
+          <div className="flex items-center space-x-3 text-gray-400">
+            <div className="flex items-center space-x-1 whitespace-nowrap">
+              <HeartIcon className="w-3.5 h-3.5" />
+              <span className="text-sm">{memeData.likes}</span>
+            </div>
+            <div className="flex items-center space-x-1 whitespace-nowrap">
+              <ChatBubbleLeftIcon className="w-3.5 h-3.5" />
+              <span className="text-sm">{memeData.total_comments}</span>
+            </div>
+            <div className="flex items-center space-x-1 whitespace-nowrap">
+              <CalendarIcon className="w-3.5 h-3.5" />
+              <span className="text-sm">{formattedDate}</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(80vh - 50px)' }}>
-                        {/* Media Section - responsive */}
-                        <div className="w-full md:w-2/3 h-full relative flex items-center justify-center">
-                {isLoading ? (
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-400"></div>
-                ) : (
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        {memeFiles.length > 0 && (() => {
-                            const currentFile = memeFiles[currentImageIndex];
-                            const fileUrl = currentFile?.url || null;
-                            const fileExtension = fileUrl?.split('?')[0].split('.').pop()?.toLowerCase();
-                            const isVideo = fileExtension === 'mp4' || fileExtension === 'webm' || fileExtension === 'mov';
-                            console.log(fileUrl);
-                            console.log(fileExtension);
-                            return isVideo ? (
-                                <video
-                                    src={fileUrl || ''}
-                                    controls
-                                    autoPlay
-                                    loop
-                                    muted
-                                    className="object-contain max-w-full max-h-full"
-                                />
-                            ) : (
-                                <img
-                                    src={fileUrl || ''}
-                                    alt={`Meme ${memeId}`}
-                                    className="object-contain max-w-full max-h-full"
-                                    loading="lazy"
-                                />
-                            );
-                        })()}
+      <div className="flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(80vh - 50px)' }}>
+        {/* Media Section - responsive */}
+        <div className="w-full md:w-2/3 h-full relative flex items-center justify-center">
+          {memeData.multimedia.length > 0 && (() => {
+            const currentMedia = memeData.multimedia[currentImageIndex];
+            console.log('Current media:', currentMedia);
+            const isVideo = currentMedia.type === 'video';
+            const mediaUrl = getMediaUrl(currentMedia.url);
+            console.log('Final media URL:', mediaUrl);
+            return isVideo ? (
+              <video
+                src={mediaUrl}
+                controls
+                autoPlay
+                loop
+                muted
+                className="object-contain max-w-full max-h-full"
+              />
+            ) : (
+              <img
+                src={mediaUrl}
+                alt={`Meme ${memeId}`}
+                className="object-contain max-w-full max-h-full"
+                loading="lazy"
+              />
+            );
+          })()}
 
-                        {memeFiles.length > 1 && (
-                            <>
-                                <button
-                                    onClick={prevImage}
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
-                                >
-                                    ←
-                                </button>
-                                <button
-                                    onClick={nextImage}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
-                                >
-                                    →
-                                </button>
-                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full text-white text-xs font-mono">
-                                    {currentImageIndex + 1} / {memeFiles.length}
-                                </div>
-                            </>
-                        )}
-                    </div>
-                )}
-            </div>
-            {/* Comments Section - responsive */}
-            <div className="w-full md:w-1/3 border-t md:border-t-0 md:border-l border-gray-700/50 h-full overflow-hidden">
-                <CommentSection memeData={memeData} />
-            </div>
+          {memeData.multimedia.length > 1 && (
+            <>
+              <button
+                onClick={prevImage}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
+              >
+                ←
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
+              >
+                →
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full text-white text-xs font-mono">
+                {currentImageIndex + 1} / {memeData.multimedia.length}
+              </div>
+            </>
+          )}
+        </div>
+        {/* Comments Section - responsive */}
+        <div className="w-full md:w-1/3 border-t md:border-t-0 md:border-l border-gray-700/50 h-full overflow-hidden">
+          <CommentSection memeData={memeData} isModal={true} />
         </div>
       </div>
+    </div>
   );
 }

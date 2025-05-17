@@ -37,14 +37,17 @@ export default function Home() {
     // Wait for fade out animation
     await new Promise(resolve => setTimeout(resolve, 300));
 
+    // Clear content before loading new data
+    setRandomContent(null);
+
     setIsLoading(true);
     setMediaError(false);
     try {
       const response = await fetch('/api/random');
       const data = await response.json();
-      setRandomContent(data);
       // Wait a bit before fading in
       await new Promise(resolve => setTimeout(resolve, 100));
+      setRandomContent(data);
       setIsVisible(true);
     } catch (error) {
       console.error('Error fetching random content:', error);
