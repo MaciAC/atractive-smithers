@@ -54,6 +54,28 @@ The project structure follows the Next.js App Router convention:
 - `/public`: Static assets
 - `/components`: Reusable UI components
 
+### Code Quality and Pre-commit Hooks
+
+This project uses Husky and lint-staged to enforce code quality standards before commits:
+
+1. **Pre-commit Hook**: Automatically runs ESLint on staged files before each commit
+2. **ESLint Configuration**: Custom rules are defined in `.eslintrc.json`
+
+When you commit changes, the pre-commit hook will:
+- Lint your staged files
+- Attempt to automatically fix issues
+- Block the commit if there are unfixable errors
+
+To manually run the linter:
+```bash
+npm run lint
+```
+
+To bypass the pre-commit hook in exceptional cases (not recommended):
+```bash
+git commit -m "Your message" --no-verify
+```
+
 ## Deployment
 
 La app es desplega amb cada push a main. Per contribuïr crea una branca, edita el codi i fes una PR.

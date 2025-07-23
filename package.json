@@ -6,39 +6,47 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ]
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.808.0",
     "@aws-sdk/s3-request-presigner": "^3.808.0",
+    "@eslint/eslintrc": "^3",
     "@heroicons/react": "^2.2.0",
     "@prisma/client": "^6.8.1",
     "@types/lodash": "^4.17.16",
+    "@types/node": "^20",
     "@types/pg": "^8.15.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.17",
     "chart.js": "^4.4.9",
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^4.1.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.2",
     "framer-motion": "^12.11.0",
     "lodash": "^4.17.21",
     "next": "15.3.2",
     "pg": "^8.16.0",
+    "postcss": "^8.4.35",
     "prisma": "^6.8.1",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-player": "^2.16.0",
-    "@eslint/eslintrc": "^3",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.17",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.2",
-    "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   },
   "devDependencies": {
-
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2"
   }
 }
