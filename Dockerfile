@@ -5,7 +5,7 @@ COPY package*.json .npmrc ./
 ENV CI=true
 RUN npm ci --omit=dev
 COPY . .
-RUN prisma generate
+RUN npx prisma generate
 RUN npm run build
 EXPOSE 3000
 CMD ["npm", "start"]
