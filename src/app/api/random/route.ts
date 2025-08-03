@@ -1,37 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { urlCache } from '@/utils/urlCache';
+import { LocalFileService } from '@/utils/fileService';
 
-const s3Client = new S3Client({
-  region: process.env.R2_REGION || 'auto',
-  endpoint: process.env.R2_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-  },
-});
-
-async function getPresignedUrl(key: string): Promise<string> {
-  // Check cache first
-  const cachedUrl = urlCache.get(key);
-  if (cachedUrl) {
-    return cachedUrl;
+async function getLocalFileUrl(key: string): Promise<string> {
+  // For local files, we can directly return the URL
+  // Check if file exists (optional - for debugging)
+  const exists = await LocalFileService.fileExists(key);
+  if (!exists) {
+    console.warn(`File not found locally: ${key}`);
   }
-
-  const command = new GetObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME,
-    Key: key,
-  });
-
-  // Generate a presigned URL that expires in 24 hours
-  const url = await getSignedUrl(s3Client, command, { expiresIn: 24 * 60 * 60 });
-
-  // Cache the URL
-  urlCache.set(key, url);
-
-  return url;
+  
+  return LocalFileService.getFileUrl(key);
 }
 
 export async function GET() {
@@ -48,8 +27,8 @@ export async function GET() {
       return NextResponse.json({ error: 'No multimedia found' }, { status: 404 });
     }
 
-    // Get presigned URL for the multimedia
-    const presignedUrl = await getPresignedUrl(randomMultimedia.url);
+    // Get local file URL for the multimedia
+    const localFileUrl = await getLocalFileUrl(randomMultimedia.url);
 
     // Get 10 random comments
     const commentsCount = await prisma.comment.count({
@@ -71,7 +50,7 @@ export async function GET() {
     return NextResponse.json({
       multimedia: {
         ...randomMultimedia,
-        url: presignedUrl
+        url: localFileUrl
       },
       comments: randomComments.map(comment => ({
         text: comment.text,

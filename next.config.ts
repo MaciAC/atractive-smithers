@@ -30,9 +30,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "instagram.fbcn7-4.fna.fbcdn.net",
       },
+      // Local development
       {
-        protocol: "https",
-        hostname: "atractive-smithers.e1a9e993199c23a6e0099c1e3a5fe29e.r2.cloudflarestorage.com",
+        protocol: "http",
+        hostname: "localhost",
       },
     ],
   },
