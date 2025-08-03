@@ -1,32 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPost } from '@/lib/db';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { urlCache } from '@/utils/urlCache';
+import { LocalFileService } from '@/utils/fileService';
 
-const s3Client = new S3Client({
-  region: 'auto',
-  endpoint: process.env.R2_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!
+async function getLocalFileUrl(key: string): Promise<string> {
+  // For local files, we can directly return the URL
+  // Check if file exists (optional - for debugging)
+  const exists = await LocalFileService.fileExists(key);
+  if (!exists) {
+    console.warn(`File not found locally: ${key}`);
   }
-});
-
-async function getPresignedUrl(key: string) {
-  // Check cache first
-  const cachedUrl = urlCache.get(key);
-  if (cachedUrl) return cachedUrl;
-
-  // Generate new presigned URL
-  const command = new GetObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME,
-    Key: key,
-  });
-
-  const url = await getSignedUrl(s3Client, command, { expiresIn: 24 * 60 * 60 }); // 24 hours
-  urlCache.set(key, url);
-  return url;
+  
+  return LocalFileService.getFileUrl(key);
 }
 
 export async function GET(
@@ -51,7 +35,7 @@ export async function GET(
       );
     }
 
-    // If includeFiles is requested, get presigned URLs for multimedia
+    // If includeFiles is requested, get local file URLs for multimedia
     const searchParams = request.nextUrl.searchParams;
     const includeFiles = searchParams.get('includeFiles') === 'true';
 
@@ -59,7 +43,7 @@ export async function GET(
       const multimediaWithUrls = await Promise.all(
         post.post.multimedia.map(async (media) => ({
           ...media,
-          url: await getPresignedUrl(media.url)
+          url: await getLocalFileUrl(media.url)
         }))
       );
       post.post.multimedia = multimediaWithUrls;

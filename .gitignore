@@ -45,3 +45,6 @@ next-env.d.ts
 .zencoder
 .vscode
 .husky
+
+/public/media
+/scripts
