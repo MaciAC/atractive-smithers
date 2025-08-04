@@ -88,7 +88,7 @@ export default function RootLayout({
                       <span className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 via-yellow-400 to-blue-500 bg-clip-text text-transparent animate-[gradient_3s_ease_infinite]"></span>
                       <span className="relative inline-block animate-[float_3s_ease-in-out_infinite] hover:animate-none">
                         <span className="animate-[glow_2s_ease-in-out_infinite]">
-                          Atractive smithers ( ͡~ ͜ʖ ͡°)
+                          Atractive smithers
                         </span>
                       </span>
                     </h1>
