@@ -25,7 +25,9 @@ jobs:
         with:
           context: .
           push: true
-          tags: macia/actractive-smithers:latest
+          tags: |
+            macia/atractive-smithers:latest
+            macia/atractive-smithers:${{ github.sha }}
           # build-args: |
           #   REACT_APP_BACKEND_URL=${{ vars.REACT_APP_BACKEND_URL }}
           #   REACT_APP_READONLY_TOKEN=${{ secrets.REACT_APP_READONLY_TOKEN }}
