@@ -47,4 +47,3 @@ next-env.d.ts
 .husky
 
 /public/media
-/scripts

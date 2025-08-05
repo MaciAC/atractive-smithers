@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-type RandomContent = {
+type RandomContentItem = {
   multimedia: {
     id: number;
     type: 'image' | 'video';
@@ -24,11 +24,13 @@ type RandomContent = {
   }>;
 };
 
+type RandomContent = RandomContentItem[];
+
 export default function Home() {
   const [isVisible, setIsVisible] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [randomContent, setRandomContent] = useState<RandomContent | null>(null);
-  const [mediaError, setMediaError] = useState(false);
+  const [mediaErrors, setMediaErrors] = useState<{[key: number]: boolean}>({});
 
   const getRandomContent = useCallback(async () => {
     // First fade out
@@ -41,7 +43,7 @@ export default function Home() {
     setRandomContent(null);
 
     setIsLoading(true);
-    setMediaError(false);
+    setMediaErrors({});
     try {
       const response = await fetch('/api/random');
       const data = await response.json();
@@ -60,8 +62,14 @@ export default function Home() {
     getRandomContent();
   }, [getRandomContent]);
 
-  const handleMediaError = () => {
-    setMediaError(true);
+  const handleMediaError = (mediaId: number) => {
+    setMediaErrors(prev => ({ ...prev, [mediaId]: true }));
+  };
+
+  // Helper function to calculate aspect ratio
+  const getAspectRatio = (width: number | null, height: number | null) => {
+    if (!width || !height) return 1; // Default to square if dimensions are missing
+    return width / height;
   };
 
   return (
@@ -78,67 +86,59 @@ export default function Home() {
             </button>
 
             <div
-              className="transition-all duration-600 ease-in-out w-full flex flex-col gap-8 backdrop-blur-2xl"
+              className="transition-all duration-600 ease-in-out w-full flex flex-col gap-8"
               style={{
                 opacity: isVisible ? 1 : 0,
-                transform: isVisible ? 'scale(1)' : 'scale(0.98)',
-                filter: isVisible ? 'blur(0)' : 'blur(4px)'
+                transform: isVisible ? 'scale(1)' : 'scale(0.98)'
               }}
             >
-              {randomContent && (
-                <div className="flex flex-col h-auto w-full max-w-3xl rounded-xl overflow-hidden border border-gray-700 bg-gray-900/50">
-                  {/* Content */}
-                  <div className="flex flex-col md:flex-row overflow-hidden" style={{ height: 'calc(80vh - 50px)' }}>
-                    {/* Media Section */}
-                    <div className="w-full md:w-2/3 h-full relative flex items-center justify-center">
-                      {isLoading ? (
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-400"></div>
-                      ) : mediaError ? (
-                        <div className="text-red-500">Error loading media. Try again!</div>
-                      ) : randomContent.multimedia.type === 'image' ? (
-                        <img
-                          src={randomContent.multimedia.url}
-                          alt="Random content"
-                          className="object-contain max-w-full max-h-full"
-                          onError={handleMediaError}
-                        />
-                      ) : (
-                        <video
-                          src={randomContent.multimedia.url}
-                          controls
-                          autoPlay
-                          loop
-                          muted
-                          className="object-contain max-w-full max-h-full"
-                          onError={handleMediaError}
-                        />
-                      )}
-                    </div>
-
-                    {/* Comments Section */}
-                    <div className="w-full md:w-1/3 border-t md:border-t-0 md:border-l border-gray-700/50 h-full overflow-hidden">
-                      <div className="h-full flex flex-col">
-                        <div className="flex-1 overflow-y-auto overflow-x-hidden discreet-scrollbar p-3 sm:p-4">
-                          <div className="divide-y divide-gray-700/50">
-                            {randomContent.comments.map((comment, index) => (
-                              <div key={index} className="py-3">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="font-bold text-white">{comment.owner.username}</span>
-                                  {comment.owner.is_verified && (
-                                    <span className="text-blue-400">✓</span>
-                                  )}
-                                </div>
-                                <p className="text-gray-200 text-sm">{comment.text}</p>
-                                <div className="mt-2 text-xs text-gray-400">
-                                  {comment.likes} likes
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+              {isLoading ? (
+                <div className="flex items-center justify-center h-96">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-400"></div>
+                </div>
+              ) : randomContent && randomContent.length > 0 ? (
+                <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">
+                  {randomContent.map((item, index) => {
+                    const aspectRatio = getAspectRatio(item.multimedia.width, item.multimedia.height);
+                    
+                    return (
+                      <div 
+                        key={item.multimedia.id} 
+                        className="rounded-xl overflow-hidden border border-gray-700 bg-gray-900/50 hover:bg-gray-900/70 transition-colors duration-200"
+                      >
+                        {/* Media Section */}
+                        <div 
+                          className="relative flex items-center justify-center bg-black w-full"
+                          style={{ aspectRatio: aspectRatio }}
+                        >
+                          {mediaErrors[item.multimedia.id] ? (
+                            <div className="text-red-500 text-center p-4">Error loading media. Try again!</div>
+                          ) : item.multimedia.type === 'image' ? (
+                            <img
+                              src={item.multimedia.url}
+                              alt={`Random content ${index + 1}`}
+                              className="w-full h-full object-contain"
+                              onError={() => handleMediaError(item.multimedia.id)}
+                            />
+                          ) : (
+                            <video
+                              src={item.multimedia.url}
+                              controls
+                              autoPlay
+                              loop
+                              muted
+                              className="w-full h-full object-contain"
+                              onError={() => handleMediaError(item.multimedia.id)}
+                            />
+                          )}
                         </div>
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center text-gray-400 p-8">
+                  No content available. Try again!
                 </div>
               )}
             </div>

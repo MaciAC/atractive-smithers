@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "prepare": "[ -n \"$CI\" ] || husky",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "sync-media": "node scripts/sync-media.js",
+    "sync-media-dry": "node scripts/sync-media.js --dry-run",
+    "sync-media-scp": "node scripts/sync-media.js --method=scp"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
