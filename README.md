@@ -1,58 +1,40 @@
 # Attractive Smithers
 
-Feeling atractive yet?
+Feeling atractive yet? (• ε •)
 
 ## Project Overview
 
-Web irectori d'atractive smithers per protegir la IP dels memes. El crawling del contingut no està inclòs en aquest repo, s'ha dafegir i automatitzar.
+Directori web que mostra memes aleatoris o buscables d'atractive smithers. El crawling del contingut no està inclòs en aquest repo.
 
 ## Features
 
+- **Random meme**
 - **Busca memes**
 - **Busca comentaris**
 
 
 ## Tech Stack
 
-- **Frontend**: Next.js, React
+- **Full-stack Framework**: Next.js, React
 - **Development Tools**: npm
-- **Deployment**: Vercel
-- **Storage**: R2
+- **Hosting**: VPS amb Coolify
+- **Database**: PostgreSQL
+- **Storage**: VPS
+- **CI/CD**: Github Actions
 
 ## Getting Started
 
-Abans de res necessitaràs en fitxer .env.local amb les variables del r2:
+Has de copiar el .env.example al .env i posar les variables d'entorn necessaries. Posa't en contacte amb nosaltres per obtenir l'accés ssh i accedir a la base de dades. El development el fem connectats a producció pq som molt valents.
 
-```bash
-R2_REGION="auto"
-R2_ENDPOINT=""
-R2_ACCESS_KEY_ID=""
-R2_SECRET_ACCESS_KEY=""
-R2_BUCKET_NAME="atractive-smithers"
-```
+També et caldrà descarregar tota la media, esta explicat al README de la carpeta scripts.
 
-First, install dependencies:
-
+tipic:
 ```bash
 npm install
 ```
-
-Then, run the development server:
-
 ```bash
 npm run dev
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
-
-## Development
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-The project structure follows the Next.js App Router convention:
-- `/app`: Contains pages and components
-- `/public`: Static assets
-- `/components`: Reusable UI components
 
 ### Code Quality and Pre-commit Hooks
 
@@ -78,7 +60,7 @@ git commit -m "Your message" --no-verify
 
 ## Deployment
 
-La app es desplega amb cada push a main. Per contribuïr crea una branca, edita el codi i fes una PR.
+La app es desplega amb cada push a master. Per contribuïr crea una branca, edita el codi i fes una PR.
 
 ## Contributing
 
@@ -89,7 +71,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 This project is open source and available under the [MIT license](LICENSE).
 
 ## TODO list atractive web:
-- automate periodic periodic updates
-- timeline per mostrar arcs
-- ⁠scrap tots els coments
-- OCR a tot els memes
+- automate periodic updates
+- timeline 
+- millorar ⁠scrapper per obtenir tots els comentaris
+- OCR als memes per poder buscar el text del meme
+- idees?
