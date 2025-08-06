@@ -15,28 +15,10 @@ const nextConfig: NextConfig = {
     unoptimized: true,
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "instagram.fbcn7-1.fna.fbcdn.net",
-      },
-      {
-        protocol: "https",
-        hostname: "instagram.fbcn7-2.fna.fbcdn.net",
-      },
-      {
-        protocol: "https",
-        hostname: "instagram.fbcn7-3.fna.fbcdn.net",
-      },
-      {
-        protocol: "https",
-        hostname: "instagram.fbcn7-4.fna.fbcdn.net",
-      },
-      // Local development
-      {
         protocol: "http",
         hostname: "localhost",
       },
     ],
   },
 };
-
 export default nextConfig;

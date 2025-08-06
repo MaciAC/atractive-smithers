@@ -108,14 +108,14 @@ export default function RootLayout({
                   <Link href="/comentaris" className="group">
                     <div className="bg-amber-800 rounded-xl p-2 transition-all duration-300 hover:bg-amber-700 hover:scale-105">
                       <h2 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
-                        💬
+                        🗣️
                       </h2>
                     </div>
                   </Link>
-                  <Link href="/info" className="group">
-                    <div className="bg-purple-800 rounded-xl p-2 transition-all duration-300 hover:bg-purple-700 hover:scale-105">
-                      <h2 className="text-2xl font-bold text-white group-hover:text-amber-400 transition-colors">
-                        ℹ️
+                  <Link href="/whatsapp3" className="group">
+                    <div className="bg-green-800 rounded-xl p-2 transition-all duration-300 hover:bg-green-700 hover:scale-105">
+                      <h2 className="text-2xl font-bold text-white group-hover:text-green-400 transition-colors">
+                        <img src='/whatsapp.ico' alt='WhatsApp' height={32} width={32}/>
                       </h2>
                     </div>
                   </Link>
