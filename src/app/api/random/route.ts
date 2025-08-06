@@ -38,7 +38,7 @@ export async function GET() {
     const randomImages = [];
     if (imageCount > 0) {
       // Get 5 random images with different skip values to ensure variety
-      const imageIndices = [];
+      const imageIndices: number[] = [];
       for (let i = 0; i < Math.min(5, imageCount); i++) {
         let randomIndex;
         do {
