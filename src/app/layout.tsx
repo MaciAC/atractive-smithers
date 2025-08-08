@@ -99,23 +99,30 @@ export default function RootLayout({
                 </div>
                 <div className="flex flex-row gap-4 z-10 pt-12 md:pt-0">
                   <Link href="/posts" className="group">
-                    <div className="bg-emerald-800 rounded-xl p-2 transition-all duration-300 hover:bg-emerald-700 hover:scale-105">
+                    <div className="bg-gray-300 rounded-xl p-2 transition-all duration-300 hover:scale-105">
                       <h2 className="text-2xl font-bold text-white group-hover:text-pink-400 transition-colors">
-                        🔍
+                        <img src='/search.ico' alt='posts' height={32} width={32}/>
                       </h2>
                     </div>
                   </Link>
                   <Link href="/comentaris" className="group">
-                    <div className="bg-amber-800 rounded-xl p-2 transition-all duration-300 hover:bg-amber-700 hover:scale-105">
+                    <div className="bg-gray-300 rounded-xl p-2 transition-all duration-300 hover:scale-105">
                       <h2 className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">
-                        🗣️
+                        <img src='/comments.ico' alt='comentaris' height={32} width={32}/>
                       </h2>
                     </div>
                   </Link>
                   <Link href="/whatsapp3" className="group">
-                    <div className="bg-green-800 rounded-xl p-2 transition-all duration-300 hover:bg-green-700 hover:scale-105">
+                    <div className="bg-gray-300 rounded-xl p-2 transition-all duration-300 hover:bg-green-700 hover:scale-105">
                       <h2 className="text-2xl font-bold text-white group-hover:text-green-400 transition-colors">
-                        <img src='/whatsapp.ico' alt='WhatsApp' height={32} width={32}/>
+                        <img src='/w3.ico' alt='WhatsApp' height={32} width={32}/>
+                      </h2>
+                    </div>
+                  </Link>
+                  <Link href="/karaoke-eteri" className="group">
+                    <div className="bg-gray-300  rounded-xl p-2 transition-all duration-300 hover:bg-green-700 hover:scale-105">
+                      <h2 className="text-2xl font-bold text-white group-hover:text-green-400 transition-colors">
+                        <img src='/sing.ico' alt='karaoke' height={32} width={32}/>
                       </h2>
                     </div>
                   </Link>
