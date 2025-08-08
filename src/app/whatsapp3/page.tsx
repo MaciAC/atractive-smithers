@@ -12,7 +12,7 @@ export default function WhatsApp3Page() {
         <div className="max-w-xl mx-auto">
             <div style={{ height: '75vh', maxHeight: '75vh' }}>
               <iframe
-                src="/w3/index.html"
+                src="/whatsapp3/index.html"
                 style={{ width: '100%', height: '100%', maxHeight: '100%' }}
                 title="WhatsApp 3 Application"
                 allow="fullscreen"
